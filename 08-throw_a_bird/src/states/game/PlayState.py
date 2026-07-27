@@ -62,7 +62,12 @@ MAX_PULL_DISTANCE = 150
 # `direction * 950 * parrot_mass`, force proportional to mass) makes
 # mass cancel out of the result: launch speed is just
 # `pull * FLING_IMPULSE_SCALE`.
-FLING_IMPULSE_SCALE = 10.5
+#
+# 10.5 (barely cleared the gap) was bumped to 16.0 (comfortably punched
+# into the tower) per feedback that throws felt too weak -- then walked
+# back to the average of the two, 13.25, per feedback that 16.0 then felt
+# too strong.
+FLING_IMPULSE_SCALE = 13.25
 
 # A shot is considered "settled" once the bird's linear/angular velocity
 # has been below these thresholds for IDLE_FRAMES_LIMIT consecutive
@@ -109,9 +114,19 @@ class PlayState(BaseState):
         self.pressed_camera_target = pygame.Vector2()
         self.aim_offset = pygame.Vector2()
 
+    def fixed_update(self) -> None:
+        # Driven by gale.game.Game's own accumulator (added in gale
+        # 1.10.0) instead of calling self.world.update(dt) here, which
+        # would otherwise run a second, redundant accumulator on top of
+        # World's own.
+        self.world.fixed_update()
+
     def update(self, dt: float) -> None:
-        self.world.update(dt)
         self.level.update(dt)
+
+        if self.level.all_enemies_defeated:
+            self.state_machine.change("victory")
+            return
 
         if self.flinging:
             self.camera_target.update(self.bird.position)

@@ -68,6 +68,7 @@ pygame.font.init()
 FONTS = {
     "small": pygame.font.Font(BASE_DIR / "assets" / "fonts" / "RifficFree-Bold.ttf", 16),
     "medium": pygame.font.Font(BASE_DIR / "assets" / "fonts" / "RifficFree-Bold.ttf", 24),
+    "large": pygame.font.Font(BASE_DIR / "assets" / "fonts" / "RifficFree-Bold.ttf", 48),
 }
 
 

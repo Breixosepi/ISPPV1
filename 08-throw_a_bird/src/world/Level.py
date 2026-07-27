@@ -81,19 +81,50 @@ GROUND_VISUAL_HEIGHT = 600.0
 
 BIRD_START_DEFOLD = (300, 300)
 
-WIND_ZONE_MARGIN = 200.0
-WIND_ZONE_WIDTH = 150.0
+# The wind zones bound the *playable* area (slingshot to tower, plus a
+# margin to throw past it), not the ground strip's full extent -- the
+# strip is ~13000px wide purely for the parallax background to have
+# something to sit on, so anchoring the zones to ground_x_range (as a
+# first version of this file did) put them ~5000-6000px past the tower,
+# effectively unreachable: the bird could fly clean off into empty space
+# forever without ever being turned back. 900 (a second version) then
+# read as too close, sitting barely past the slingshot/tower; widened.
+WIND_ZONE_MARGIN = 2200.0
+_BLOCK_XS = [dx for _name, dx, _dy, _archetype, _rot90 in BLOCKS]
+PLAY_AREA_LEFT = min(BIRD_START_DEFOLD[0], min(_BLOCK_XS)) - WIND_ZONE_MARGIN
+PLAY_AREA_RIGHT = max(_BLOCK_XS) + WIND_ZONE_MARGIN
+
+# Wide enough to give a fast-moving body several frames to be blended to
+# a stop-and-turn (see _apply_wind) instead of crossing in a couple of
+# frames, which is what a thinner zone (150, a second version) did.
+WIND_ZONE_WIDTH = 700.0
 WIND_ZONE_HEIGHT = 6000.0
-# A flat force (not scaled by the body's own mass), matching the
-# original wind.script applying the same physics.apply_force vector to
-# whatever it touches -- so, exactly like the original, this pushes
-# light objects (a wood plank) proportionally harder than heavy ones
-# (the bird), which is the point: a soft boundary that reliably turns
-# anything back, regardless of what it is.
-WIND_FORCE = 2_500_000.0
+# wind.script's own approach -- a flat force applied for as long as a
+# body overlaps the trigger volume -- didn't translate directly (see the
+# WIND_ZONE_WIDTH comment above for the too-thin-zone half of that), and
+# a second version's fix, snapping the x-velocity straight to a target
+# the instant contact starts, read as exaggeratedly strong/aggressive:
+# a fast incoming body would have its velocity reversed in a single
+# frame, a multi-thousand-px/s change with no transition at all.
+#
+# Every frame a body touches a wind zone, its x-velocity is now blended
+# a fraction of the way toward this target speed (directed back toward
+# the play area) instead of snapped to it outright -- see
+# WIND_BLEND_RATE. Combined with the wider zone above, that spreads the
+# turn-around over several frames, so it reads as a wind gust slowing
+# and reversing you, not a wall slamming you back.
+WIND_BOUNCE_SPEED = 650.0
+# Exponential-smoothing rate (same style as PlayState's camera zoom
+# lerp): higher = the velocity blend catches up to the target faster.
+WIND_BLEND_RATE = 5.0
 
 DEBRIS_PER_BLOCK = 5
 DEBRIS_SCATTER = 30
+
+# The "enemies" for a win condition -- the aliens, not the stone/wood
+# structure itself (knocking the tower down is how you get at them, not
+# the goal in its own right).
+ENEMY_ARCHETYPES = {"alien_square", "alien_round"}
 
 
 class Level:
@@ -106,6 +137,16 @@ class Level:
         self._build_ground()
         self._build_blocks()
         self._build_wind_zones()
+
+        self._enemy_count = sum(
+            1 for block in self.blocks if block.archetype in ENEMY_ARCHETYPES
+        )
+
+    @property
+    def all_enemies_defeated(self) -> bool:
+        return self._enemy_count > 0 and not any(
+            block.archetype in ENEMY_ARCHETYPES for block in self.blocks
+        )
 
     @property
     def bird_start(self) -> pygame.Vector2:
@@ -138,32 +179,39 @@ class Level:
             )
 
     def _build_wind_zones(self) -> None:
-        left, right = self.ground_x_range
         center_y = self.ground_top_y - WIND_ZONE_HEIGHT / 2 + 400
 
         self.wind_left = self.world.create_static_body(
-            left - WIND_ZONE_MARGIN,
+            PLAY_AREA_LEFT,
             center_y,
             BoxShape(WIND_ZONE_WIDTH, WIND_ZONE_HEIGHT, is_sensor=True),
         )
         self.wind_left.user_data = "wind"
 
         self.wind_right = self.world.create_static_body(
-            right + WIND_ZONE_MARGIN,
+            PLAY_AREA_RIGHT,
             center_y,
             BoxShape(WIND_ZONE_WIDTH, WIND_ZONE_HEIGHT, is_sensor=True),
         )
         self.wind_right.user_data = "wind"
 
     def update(self, dt: float) -> None:
-        self._apply_wind()
+        self._apply_wind(dt)
         self._collect_destroyed()
         self.debris = [chip for chip in self.debris if chip.alive]
 
-    def _apply_wind(self) -> None:
+    def _apply_wind(self, dt: float) -> None:
+        # sign > 0 (left zone) pushes toward +x, sign < 0 (right zone)
+        # pushes toward -x -- both back toward the play area's center.
+        factor = 1.0 - math.exp(-WIND_BLEND_RATE * dt)
+
         for wind_body, sign in ((self.wind_left, 1), (self.wind_right, -1)):
             for body in wind_body.touching_bodies:
-                body.apply_force(sign * WIND_FORCE, 0)
+                target_vx = sign * WIND_BOUNCE_SPEED
+                vx = body.velocity.x
+
+                if (sign > 0 and vx < target_vx) or (sign < 0 and vx > target_vx):
+                    body.set_velocity(vx + (target_vx - vx) * factor, body.velocity.y)
 
     def _collect_destroyed(self) -> None:
         survivors = []
