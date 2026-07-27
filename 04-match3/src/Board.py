@@ -24,14 +24,14 @@ class Board:
         self.y = y
         self.matches: List[List[Tile]] = []
         self.tiles: List[List[Tile]] = []
-        self.__initialize_tiles()
+        self._initialize_tiles()
 
     def render(self, surface: pygame.Surface) -> None:
         for row in self.tiles:
             for tile in row:
                 tile.render(surface, self.x, self.y)
 
-    def __is_match_generated(self, i: int, j: int, color: int) -> bool:
+    def _is_match_generated(self, i: int, j: int, color: int) -> bool:
         if (
             i >= 2
             and self.tiles[i - 1][j].color == color
@@ -45,7 +45,7 @@ class Board:
             and self.tiles[i][j - 2].color == color
         )
 
-    def __initialize_tiles(self) -> None:
+    def _initialize_tiles(self) -> None:
         self.tiles = [
             [None for _ in range(settings.BOARD_WIDTH)]
             for _ in range(settings.BOARD_HEIGHT)
@@ -53,14 +53,14 @@ class Board:
         for i in range(settings.BOARD_HEIGHT):
             for j in range(settings.BOARD_WIDTH):
                 color = random.randint(0, settings.NUM_COLORS - 1)
-                while self.__is_match_generated(i, j, color):
+                while self._is_match_generated(i, j, color):
                     color = random.randint(0, settings.NUM_COLORS - 1)
 
                 self.tiles[i][j] = Tile(
                     i, j, color, random.randint(0, settings.NUM_VARIETIES - 1)
                 )
 
-    def __calculate_match_rec(self, tile: Tile) -> Set[Tile]:
+    def _calculate_match_rec(self, tile: Tile) -> Set[Tile]:
         if tile in self.in_stack:
             return []
 
@@ -126,7 +126,7 @@ class Board:
                 match.append(tile)
 
         for t in match:
-            match += self.__calculate_match_rec(t)
+            match += self._calculate_match_rec(t)
 
         self.in_stack.remove(tile)
         return match
@@ -140,7 +140,7 @@ class Board:
         for tile in new_tiles:
             if tile in self.in_match:
                 continue
-            match = self.__calculate_match_rec(tile)
+            match = self._calculate_match_rec(tile)
             if len(match) > 0:
                 self.matches.append(match)
 

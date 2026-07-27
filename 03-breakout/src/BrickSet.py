@@ -25,7 +25,7 @@ class Brickset:
     def get_brick(self, i: int, j: int) -> Optional[Brick]:
         return self.bricks.get((i, j))
 
-    def __del_brick(self, pos: Tuple[int, int]) -> None:
+    def _del_brick(self, pos: Tuple[int, int]) -> None:
         self.bricks.pop(pos)
         self.size -= 1
 
@@ -65,7 +65,7 @@ class Brickset:
                 to_del.append(pos)
 
         for pos in to_del:
-            self.__del_brick(pos)
+            self._del_brick(pos)
 
     def render(self, surface: pygame.Surface) -> None:
         for brick in self.bricks.values():

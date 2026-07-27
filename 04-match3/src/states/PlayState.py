@@ -174,7 +174,7 @@ class PlayState(BaseState):
                                 tile1.i,
                                 tile1.j,
                             )
-                            self.__calculate_matches([tile1, tile2])
+                            self._calculate_matches([tile1, tile2])
 
                         # Swap tiles
                         Timer.tween(
@@ -188,7 +188,7 @@ class PlayState(BaseState):
 
                     self.highlighted_tile = False
 
-    def __calculate_matches(self, tiles: List) -> None:
+    def _calculate_matches(self, tiles: List) -> None:
         matches = self.board.calculate_matches_for(tiles)
 
         if matches is None:
@@ -208,7 +208,7 @@ class PlayState(BaseState):
         Timer.tween(
             0.25,
             falling_tiles,
-            on_finish=lambda: self.__calculate_matches(
+            on_finish=lambda: self._calculate_matches(
                 [item[0] for item in falling_tiles]
             ),
         )
