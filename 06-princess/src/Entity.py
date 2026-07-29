@@ -8,12 +8,13 @@ alejandro.j.mujic4@gmail.com
 This file contains the class Entity.
 """
 
-from typing import Any, Dict
+from typing import Any, Dict, Optional
 
 import pygame
 
 from gale.animation import Animation
 from gale.state import StateMachine
+from gale.stencil import Stencil
 
 import settings
 
@@ -59,6 +60,14 @@ class Entity:
         self.current_animation = None
         self.animations = self._create_animations(animation_defs)
         self.state_machine = StateMachine(states)
+
+        # When set (screen-space, same coordinates as x/y at render time),
+        # render_sprite only shows the part of the sprite that falls
+        # inside this rect and clips the rest -- used to let the player
+        # visually pass through a doorway opening without popping through
+        # the solid wall around it. None (the default, for every entity
+        # that never crosses a doorway) skips the stencil entirely.
+        self.visibility_clip_rect: Optional[pygame.Rect] = None
 
     def _create_animations(
         self, animation_defs: Dict[str, Dict[str, Any]]
@@ -138,8 +147,20 @@ class Entity:
             self.flash_timer = 0
             image.set_alpha(64)
 
+        sprite_x = round(self.x - self.offset_x)
+        sprite_y = round(self.y - self.offset_y)
+
+        if self.visibility_clip_rect is not None:
+            sprite_rect = pygame.Rect(sprite_x, sprite_y, frame.width, frame.height)
+            visible = self.visibility_clip_rect.clip(sprite_rect)
+            visible.move_ip(-sprite_x, -sprite_y)
+
+            stencil = Stencil((frame.width, frame.height))
+            stencil.draw(lambda mask: mask.fill((255, 255, 255, 255), visible))
+            stencil.apply(image)
+
         surface.blit(
-            image, (round(self.x - self.offset_x), round(self.y - self.offset_y))
+            image, (sprite_x, sprite_y)
         )
 
     def render(

@@ -24,43 +24,57 @@ from src.world.Doorway import Doorway
 
 _ENEMY_TYPES = ["skeleton", "slime", "bat", "ghost", "spider"]
 
-# Door archway thresholds, in the same room-local coordinates as every
-# entity's x/y (not screen space, so this works regardless of camera/
-# adjacent-room render offsets). The player/projectiles are simply not
-# drawn while overlapping one of these — the original used a stencil test
-# to cut this same archway shape out of the player draw, so walking (or,
-# mid room-shift, tweening) through the wall opening never shows them
-# clipping through solid wall.
-_DOORWAY_ZONES = [
-    pygame.Rect(
+# Door archway detection zones, in the same room-local coordinates as
+# every entity's x/y (not screen space, so this works regardless of
+# camera/adjacent-room render offsets). Wider than the doorway's own
+# get_collision_rect() on purpose -- these only decide *whether* the
+# player is close enough to a doorway to bother clipping at all; the
+# actual visible shape while crossing is the doorway's own, narrower,
+# rect (see _doorway_opening_for below), applied with gale.stencil in
+# Entity.render_sprite so the player is seen passing through the wall
+# opening -- clipped by its edges -- instead of popping in and out of
+# existence.
+_DOORWAY_ZONES = {
+    "left": pygame.Rect(
         -settings.TILE_SIZE - 6,
         settings.MAP_RENDER_OFFSET_Y + settings.MAP_HEIGHT // 2 * settings.TILE_SIZE - settings.TILE_SIZE * 2,
         settings.TILE_SIZE * 2 + 6,
         settings.TILE_SIZE * 3,
     ),
-    pygame.Rect(
+    "right": pygame.Rect(
         settings.MAP_RENDER_OFFSET_X + settings.MAP_WIDTH * settings.TILE_SIZE - 6,
         settings.MAP_RENDER_OFFSET_Y + settings.MAP_HEIGHT // 2 * settings.TILE_SIZE - settings.TILE_SIZE * 2,
         settings.TILE_SIZE * 2 + 6,
         settings.TILE_SIZE * 3,
     ),
-    pygame.Rect(
+    "top": pygame.Rect(
         settings.MAP_RENDER_OFFSET_X + settings.MAP_WIDTH // 2 * settings.TILE_SIZE - settings.TILE_SIZE,
         -settings.TILE_SIZE - 6,
         settings.TILE_SIZE * 2,
         settings.TILE_SIZE * 2 + 12,
     ),
-    pygame.Rect(
+    "bottom": pygame.Rect(
         settings.MAP_RENDER_OFFSET_X + settings.MAP_WIDTH // 2 * settings.TILE_SIZE - settings.TILE_SIZE,
         settings.VIRTUAL_HEIGHT - settings.TILE_SIZE - 6,
         settings.TILE_SIZE * 2,
         settings.TILE_SIZE * 2 + 12,
     ),
-]
+}
 
 
-def _in_any_doorway_zone(rect: pygame.Rect) -> bool:
-    return any(zone.colliderect(rect) for zone in _DOORWAY_ZONES)
+def _doorway_opening_for(
+    rect: pygame.Rect, doorways_by_direction: dict
+) -> Optional[pygame.Rect]:
+    """
+    :returns: The precise opening rect of whichever doorway rect is
+        close to (i.e. overlapping the wider detection zone of), or
+        None if rect isn't near any doorway right now.
+    """
+    for direction, zone in _DOORWAY_ZONES.items():
+        if zone.colliderect(rect):
+            return doorways_by_direction[direction].get_collision_rect()
+
+    return None
 
 
 class Room:
@@ -92,6 +106,9 @@ class Room:
             Doorway("left", False, self),
             Doorway("right", False, self),
         ]
+        self._doorways_by_direction = {
+            doorway.direction: doorway for doorway in self.doorways
+        }
 
         # Used for centering the dungeon rendering.
         self.render_offset_x = settings.MAP_RENDER_OFFSET_X
@@ -372,14 +389,22 @@ class Room:
         # shift; adding adjacent_offset on top (as tiles/entities do) would
         # draw them a full room-width off from where they actually are.
         #
-        # Also masks them out entirely while within a door archway's
-        # threshold — a plain rect-overlap stand-in for the original's
-        # stencil test, which cut the same archway shape out of the player
-        # draw so walking (or, mid room-shift, tweening) through the wall
-        # opening doesn't show them clipping through solid wall.
-        if self.player and not _in_any_doorway_zone(self.player.get_collision_rect()):
+        # While the player is near a doorway, clip their sprite to that
+        # doorway's own opening rect (via gale.stencil, applied inside
+        # Entity.render_sprite) instead of hiding them outright: the part
+        # of the sprite still overlapping solid wall disappears, but the
+        # part inside the opening keeps showing, so walking (or, mid
+        # room-shift, tweening) through the gap reads as passing under/
+        # through the archway rather than blinking out of existence.
+        if self.player:
+            self.player.visibility_clip_rect = _doorway_opening_for(
+                self.player.get_collision_rect(), self._doorways_by_direction
+            )
             self.player.render(surface, camera_offset_x, camera_offset_y)
+            self.player.visibility_clip_rect = None
 
         for projectile in self.projectiles:
-            if not _in_any_doorway_zone(projectile.get_collision_rect()):
+            if not _doorway_opening_for(
+                projectile.get_collision_rect(), self._doorways_by_direction
+            ):
                 projectile.render(surface, camera_offset_x, camera_offset_y)
