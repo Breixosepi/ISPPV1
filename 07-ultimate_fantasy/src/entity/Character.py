@@ -68,3 +68,43 @@ class Character(BattleEntity):
 
     def _next_exp_to_level(self) -> None:
         self.exp_to_level = self.level * self.level * 10 * 1.1
+
+    def to_dict(self) -> Dict[str, Any]:
+        """
+        The mutable, run-dependent fields a save needs to restore this
+        character exactly as it was: everything else (name, texture,
+        class, actions, animations) comes back from ENTITY_DEFS the
+        next time Party rebuilds it from the saved gender.
+        """
+        return {
+            "level": self.level,
+            "dead": self.dead,
+            "hp": self.hp,
+            "attack": self.attack,
+            "defense": self.defense,
+            "magic": self.magic,
+            "current_hp": self.current_hp,
+            "current_exp": self.current_exp,
+            "exp_to_level": self.exp_to_level,
+            "map_x": self.map_x,
+            "map_y": self.map_y,
+            "direction": self.direction,
+        }
+
+    def load_dict(self, data: Dict[str, Any]) -> None:
+        self.level = data["level"]
+        self.dead = data["dead"]
+        self.hp = data["hp"]
+        self.attack = data["attack"]
+        self.defense = data["defense"]
+        self.magic = data["magic"]
+        self.current_hp = data["current_hp"]
+        self.current_exp = data["current_exp"]
+        self.exp_to_level = data["exp_to_level"]
+        # Restored here so Party.load_dict can read the leader's saved
+        # position back off of it; Party.set_position() recomputes this
+        # (and every follower's) pixel x/y right after, the same way it
+        # already does for a fresh, non-loaded party.
+        self.map_x = data["map_x"]
+        self.map_y = data["map_y"]
+        self.direction = data["direction"]

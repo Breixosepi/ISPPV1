@@ -28,6 +28,8 @@ input_handler.InputHandler.set_keyboard_action(input_handler.KEY_a, "move_left")
 input_handler.InputHandler.set_keyboard_action(input_handler.KEY_SPACE, "jump")
 input_handler.InputHandler.set_mouse_click_action(input_handler.MOUSE_BUTTON_1, "jump")
 
+TITLE = "Super Martian"
+
 # Size we want to emulate
 VIRTUAL_WIDTH = 400
 VIRTUAL_HEIGHT = 192
@@ -63,6 +65,11 @@ FRAMES = {
     "creatures": frames.generate_frames(TEXTURES["creatures"], 16, 16),
 }
 
+# Unlike font, mixer isn't guaranteed to have initialized successfully
+# just because pygame.init() (called when gale.game is imported) ran
+# without raising -- it silently skips a subsystem it couldn't start
+# (e.g. no audio device) instead. This game actually loads real sound
+# files below, so it needs to know for sure.
 pygame.mixer.init()
 
 SOUNDS = {
@@ -75,8 +82,6 @@ SOUNDS = {
 }
 
 SOUNDS["pickup_coin"].set_volume(0.5)
-
-pygame.font.init()
 
 FONTS = {
     "small": pygame.font.Font(BASE_DIR / "assets" / "fonts" / "font.ttf", 8),

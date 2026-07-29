@@ -23,6 +23,8 @@ input_handler.InputHandler.set_keyboard_action(input_handler.KEY_s, "p1_down")
 input_handler.InputHandler.set_keyboard_action(input_handler.KEY_UP, "p2_up")
 input_handler.InputHandler.set_keyboard_action(input_handler.KEY_DOWN, "p2_down")
 
+TITLE = "Pong"
+
 # Size of our actual window
 WINDOW_WIDTH = 1280
 WINDOW_HEIGHT = 720
@@ -45,6 +47,11 @@ MAX_POINTS = 5
 
 BASE_DIR = Path(__file__).parent
 
+# Unlike font, mixer isn't guaranteed to have initialized successfully
+# just because pygame.init() (called when gale.game is imported) ran
+# without raising -- it silently skips a subsystem it couldn't start
+# (e.g. no audio device) instead. This game actually loads real sound
+# files below, so it needs to know for sure.
 pygame.mixer.init()
 
 SOUNDS = {
@@ -52,8 +59,6 @@ SOUNDS = {
     "wall_hit": pygame.mixer.Sound(BASE_DIR / "assets" / "sounds" / "wall_hit.wav"),
     "score": pygame.mixer.Sound(BASE_DIR / "assets" / "sounds" / "score.wav"),
 }
-
-pygame.font.init()
 
 FONTS = {
     "score": pygame.font.Font(BASE_DIR / "assets" / "fonts" / "font.ttf", 32),

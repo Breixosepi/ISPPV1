@@ -25,6 +25,13 @@ input_handler.InputHandler.set_keyboard_action(input_handler.KEY_DOWN, "move_dow
 input_handler.InputHandler.set_keyboard_action(input_handler.KEY_SPACE, "space")
 input_handler.InputHandler.set_keyboard_action(input_handler.KEY_RETURN, "enter")
 input_handler.InputHandler.set_keyboard_action(input_handler.KEY_KP_ENTER, "enter")
+input_handler.InputHandler.set_keyboard_action(input_handler.KEY_p, "pause")
+input_handler.InputHandler.set_keyboard_action(input_handler.KEY_c, "continue")
+
+TITLE = "Ultimate Fantasy"
+
+# gale.save.SaveManager slot used for this game's single save file.
+SAVE_SLOT = "slot1"
 
 BASE_DIR = pathlib.Path(__file__).parent
 
@@ -144,8 +151,6 @@ def frame(texture_id, one_based_index):
     return FRAMES[texture_id][one_based_index - 1]
 
 
-pygame.font.init()
-
 FONTS = {
     "small": pygame.font.Font(BASE_DIR / "assets" / "fonts" / "font.ttf", 8),
     "medium": pygame.font.Font(BASE_DIR / "assets" / "fonts" / "font.ttf", 16),
@@ -154,6 +159,11 @@ FONTS = {
     "ff-small": pygame.font.Font(BASE_DIR / "assets" / "fonts" / "finalf.ttf", 24),
 }
 
+# Unlike font, mixer isn't guaranteed to have initialized successfully
+# just because pygame.init() (called when gale.game is imported) ran
+# without raising -- it silently skips a subsystem it couldn't start
+# (e.g. no audio device) instead. This game actually loads real sound
+# files below, so it needs to know for sure.
 pygame.mixer.init()
 
 SOUNDS = {

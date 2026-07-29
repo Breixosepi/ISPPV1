@@ -28,6 +28,10 @@ from src.states.entity.PartyWalkState import PartyWalkState
 class Party:
     def __init__(self, party_genders: Dict[int, str], world: TypeVar("World")) -> None:
         self.world = world
+        # Kept around (not just consumed) so a save can be reconstructed:
+        # rebuilding a Character needs the same gender-driven texture/
+        # name/animations that were used to create it the first time.
+        self.party_genders = dict(party_genders)
 
         # Tracks which movement keys are currently held down, polled once per
         # frame (in left/right/up/down priority order) by PartyIdleState,
@@ -167,6 +171,23 @@ class Party:
         for character in self.characters.values():
             if not character.dead:
                 character.update(dt)
+
+    def to_dict(self) -> Dict[str, Any]:
+        return {
+            "genders": self.party_genders,
+            "characters": {
+                str(k): character.to_dict() for k, character in self.characters.items()
+            },
+        }
+
+    def load_dict(self, data: Dict[str, Any]) -> None:
+        for k, character_data in data["characters"].items():
+            self.characters[int(k)].load_dict(character_data)
+
+        leader = self.first_alive()
+
+        if leader is not None:
+            self.set_position(leader.map_x, leader.map_y, leader.direction)
 
     def render(self, surface: pygame.Surface) -> None:
         self.state_machine.render(surface)

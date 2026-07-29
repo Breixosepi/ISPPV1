@@ -32,6 +32,8 @@ input_handler.InputHandler.set_keyboard_action(input_handler.KEY_DOWN, "move_dow
 input_handler.InputHandler.set_keyboard_action(input_handler.KEY_LEFT, "move_left")
 input_handler.InputHandler.set_keyboard_action(input_handler.KEY_SPACE, "pause")
 
+TITLE = "Breakout"
+
 # Size of our actual window
 WINDOW_WIDTH = 1280
 WINDOW_HEIGHT = 720
@@ -53,6 +55,11 @@ POWERUP_SPEED = 50
 
 BASE_DIR = Path(__file__).parent
 
+# Unlike font, mixer isn't guaranteed to have initialized successfully
+# just because pygame.init() (called when gale.game is imported) ran
+# without raising -- it silently skips a subsystem it couldn't start
+# (e.g. no audio device) instead. This game actually loads real sound
+# files below, so it needs to know for sure.
 pygame.mixer.init()
 
 SOUNDS = {
@@ -92,8 +99,6 @@ FRAMES = {
     "arrows": generate_frames(TEXTURES["arrows"], 24, 24),
     "powerups": generate_powerups_frames(),
 }
-
-pygame.font.init()
 
 FONTS = {
     "tiny": pygame.font.Font(BASE_DIR / "assets" / "fonts" / "font.ttf", 6),

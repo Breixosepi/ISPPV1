@@ -151,3 +151,24 @@ class World:
     def render(self, surface: pygame.Surface) -> None:
         self.current_region().render(surface)
         self.party.render(surface)
+
+    def to_dict(self) -> Dict[str, Any]:
+        """
+        Regions themselves are left out on purpose: they are generated
+        proceduralmente (Section on tile maps, Chapter 7) from nothing
+        but their gate configuration, which is fixed in __init__ and
+        never mutated, so there is nothing region-specific worth
+        persisting -- only which one the party is currently in.
+        """
+        return {
+            "current_region_name": self.current_region_name,
+            "party": self.party.to_dict(),
+        }
+
+    def load_dict(self, data: Dict[str, Any]) -> None:
+        self.current_region_name = data["current_region_name"]
+        self.party.load_dict(data["party"])
+
+        if self.current_region_name != "center":
+            settings.stop_music("town")
+            settings.play_music("world")

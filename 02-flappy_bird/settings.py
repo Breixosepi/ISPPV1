@@ -20,6 +20,8 @@ input_handler.InputHandler.set_keyboard_action(input_handler.KEY_ESCAPE, "quit")
 input_handler.InputHandler.set_keyboard_action(input_handler.KEY_RETURN, "confirm")
 input_handler.InputHandler.set_mouse_click_action(input_handler.MOUSE_BUTTON_1, "jump")
 
+TITLE = "Flappy Bird"
+
 # Size of our actual window
 WINDOW_WIDTH = 1280
 WINDOW_HEIGHT = 720
@@ -62,6 +64,11 @@ TEXTURES = {
 # The top log of every pair is the same image, flipped upside down.
 TEXTURES["log_inverted"] = pygame.transform.flip(TEXTURES["log"], False, True)
 
+# Unlike font, mixer isn't guaranteed to have initialized successfully
+# just because pygame.init() (called when gale.game is imported) ran
+# without raising -- it silently skips a subsystem it couldn't start
+# (e.g. no audio device) instead. This game actually loads real sound
+# and music files below, so it needs to know for sure.
 pygame.mixer.init()
 
 SOUNDS = {
@@ -72,8 +79,6 @@ SOUNDS = {
 }
 
 pygame.mixer.music.load(BASE_DIR / "assets" / "sounds" / "marios_way.ogg")
-
-pygame.font.init()
 
 FONTS = {
     "medium": pygame.font.Font(BASE_DIR / "assets" / "fonts" / "font.ttf", MEDIUM_TEXT_SIZE),

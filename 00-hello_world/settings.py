@@ -21,6 +21,8 @@ from gale import input_handler
 
 input_handler.InputHandler.set_keyboard_action(input_handler.KEY_ESCAPE, "quit")
 
+TITLE = "Hello World"
+
 # Size of our actual window. The original creates a plain 320x200
 # window with no virtual-resolution scaling, so window and virtual
 # sizes match here too.
@@ -30,8 +32,6 @@ WINDOW_HEIGHT = 200
 # Size we are trying to emulate
 VIRTUAL_WIDTH = 320
 VIRTUAL_HEIGHT = 200
-
-pygame.font.init()
 
 # Allegro's al_create_builtin_font() is a small monospace pixel font
 # built into the library; pygame.font.Font(None, ...) is the closest

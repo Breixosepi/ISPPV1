@@ -32,6 +32,8 @@ input_handler.InputHandler.set_mouse_click_action(
 )
 input_handler.InputHandler.set_mouse_motion_action(None, "touch_motion")
 
+TITLE = "Throw a Bird"
+
 BASE_DIR = pathlib.Path(__file__).parent
 
 VIRTUAL_WIDTH = 800
@@ -63,7 +65,6 @@ FLOOR_Y = 1300
 def flip_y(defold_y: float) -> float:
     return FLOOR_Y - defold_y
 
-pygame.font.init()
 
 FONTS = {
     "small": pygame.font.Font(BASE_DIR / "assets" / "fonts" / "RifficFree-Bold.ttf", 16),
