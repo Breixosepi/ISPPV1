@@ -45,6 +45,11 @@ class World:
 
         self.party = Party(party_genders, self)
 
+        # World is constructed both for a new game (SelectCharacterState
+        # already stopped "intro") and for a loaded save (StartState's
+        # "continue" path never does), so stop it here too -- redundant
+        # in the first case, the actual fix in the second.
+        settings.stop_music("intro")
         settings.play_music("town")
 
     def current_region(self) -> Region:
