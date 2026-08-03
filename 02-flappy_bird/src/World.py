@@ -14,6 +14,8 @@ from typing import List
 
 import pygame
 
+from gale.factory import Factory
+
 import settings
 from src.LogPair import LogPair
 
@@ -26,6 +28,7 @@ class World:
         self.logs: List[LogPair] = []
         self.logs_spawn_timer: float = 0.0
         self.last_log_y: float = -settings.LOG_HEIGHT + random.randint(0, 80) + 20
+        self.log_pair_factory: Factory = Factory(LogPair)
 
     def reset(self, generate_logs: bool) -> None:
         self.generate_logs = generate_logs
@@ -53,7 +56,7 @@ class World:
                     ),
                 )
                 self.last_log_y = y
-                self.logs.append(LogPair(settings.VIRTUAL_WIDTH, y))
+                self.logs.append(self.log_pair_factory.create(settings.VIRTUAL_WIDTH, y))
 
         self.background_x += -settings.BACK_SCROLL_SPEED * dt
 
