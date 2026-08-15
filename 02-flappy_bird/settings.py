@@ -64,13 +64,6 @@ TEXTURES = {
 # The top log of every pair is the same image, flipped upside down.
 TEXTURES["log_inverted"] = pygame.transform.flip(TEXTURES["log"], False, True)
 
-# Unlike font, mixer isn't guaranteed to have initialized successfully
-# just because pygame.init() (called when gale.game is imported) ran
-# without raising -- it silently skips a subsystem it couldn't start
-# (e.g. no audio device) instead. This game actually loads real sound
-# and music files below, so it needs to know for sure.
-pygame.mixer.init()
-
 SOUNDS = {
     "jump": pygame.mixer.Sound(BASE_DIR / "assets" / "sounds" / "jump.wav"),
     "explosion": pygame.mixer.Sound(BASE_DIR / "assets" / "sounds" / "explosion.wav"),

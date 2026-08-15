@@ -159,13 +159,6 @@ FONTS = {
     "ff-small": pygame.font.Font(BASE_DIR / "assets" / "fonts" / "finalf.ttf", 24),
 }
 
-# Unlike font, mixer isn't guaranteed to have initialized successfully
-# just because pygame.init() (called when gale.game is imported) ran
-# without raising -- it silently skips a subsystem it couldn't start
-# (e.g. no audio device) instead. This game actually loads real sound
-# files below, so it needs to know for sure.
-pygame.mixer.init()
-
 SOUNDS = {
     "intro": pygame.mixer.Sound(BASE_DIR / "assets" / "sounds" / "intro.mp3"),
     "town": pygame.mixer.Sound(BASE_DIR / "assets" / "sounds" / "town.mp3"),
@@ -184,11 +177,6 @@ SOUNDS = {
     "the-end": pygame.mixer.Sound(BASE_DIR / "assets" / "sounds" / "the_end.mp3"),
 }
 
-# Sounds that loop and may need to be paused/stopped independently of one
-# another (unlike pygame.mixer.music, which only ever plays one track). Each
-# entry starts as None and is filled in with the pygame.mixer.Channel
-# returned by Sound.play() once that track starts, so it can be
-# paused/unpaused/stopped later without stopping every other loop.
 MUSIC_CHANNELS = {
     "intro": None,
     "town": None,

@@ -57,13 +57,6 @@ TEXTURES = {
 
 FRAMES = {"tiles": generate_tile_frames(TEXTURES["tiles"])}
 
-# Unlike font, mixer isn't guaranteed to have initialized successfully
-# just because pygame.init() (called when gale.game is imported) ran
-# without raising -- it silently skips a subsystem it couldn't start
-# (e.g. no audio device) instead. This game actually loads real sound
-# and music files below, so it needs to know for sure.
-pygame.mixer.init()
-
 SOUNDS = {
     "clock": pygame.mixer.Sound(BASE_DIR / "assets" / "sounds" / "clock.wav"),
     "error": pygame.mixer.Sound(BASE_DIR / "assets" / "sounds" / "error.wav"),
