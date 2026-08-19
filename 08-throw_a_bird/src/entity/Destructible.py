@@ -33,7 +33,6 @@ from gale.physics.world import World
 
 import settings
 from src.definitions.entity import ARCHETYPES, density_for_box, density_for_circle
-from src.entity._physics_util import set_damping
 
 # A collision against the ground reads the destructible's own speed
 # instead of "the other body's" (there is no other body, the ground never
@@ -85,7 +84,7 @@ class Destructible:
 
         self.body = world.create_dynamic_body(x, y, shape)
         self.body.angle = angle
-        set_damping(self.body, defn["linear_damping"], defn["angular_damping"])
+        self.body.set_damping(defn["linear_damping"], defn["angular_damping"])
         self.body.user_data = self
 
         self.mass: float = defn["mass"]
