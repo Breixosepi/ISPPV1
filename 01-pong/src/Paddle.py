@@ -24,6 +24,9 @@ class Paddle:
     def get_rect(self) -> pygame.Rect:
         return pygame.Rect(round(self.x), round(self.y), self.width, self.height)
 
+    def get_center(self) -> int:
+            return self.get_rect().centery
+
     def update(self, dt: float) -> None:
         self.y += self.vy * dt
         self.y = max(0, min(self.y, settings.VIRTUAL_HEIGHT - self.height))

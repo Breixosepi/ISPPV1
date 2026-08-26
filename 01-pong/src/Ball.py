@@ -25,6 +25,9 @@ class Ball:
     def get_rect(self) -> pygame.Rect:
         return pygame.Rect(round(self.x), round(self.y), self.width, self.height)
 
+    def get_center(self) -> int:
+        return self.get_rect().centery
+
     def update(self, dt: float) -> None:
         self.x += self.vx * dt
         self.y += self.vy * dt
