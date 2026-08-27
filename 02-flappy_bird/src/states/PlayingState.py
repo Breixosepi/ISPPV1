@@ -13,16 +13,18 @@ from typing import Optional
 import pygame
 
 from gale.input_handler import InputData
-from gale.state import BaseState
+from gale.state import Any, BaseState
 from gale.text import render_text
 
 import settings
 from src.Bird import Bird
 from src.World import World
 
+from src.strategies import NormalStrategyMode
+
 
 class PlayingState(BaseState):
-    def enter(self, world: Optional[World] = None, bird:Optional[Bird] = None,score :int = 0) -> None:
+    def enter(self, world: Optional[World] = None, bird:Optional[Bird] = None,score :int = 0, mode: Optional[Any] = None) -> None:
         self.world = world if world is not None else World()
 
         if bird is not None:
@@ -36,15 +38,16 @@ class PlayingState(BaseState):
                 settings.BIRD_HEIGHT,
             )
         self.score = score
+        self.mode = mode if mode is not None else NormalStrategyMode()
 
     def update(self, dt: float) -> None:
         self.bird.update(dt)
-        self.world.update(dt)
+        self.mode.update_world(self.world, dt)
 
         if self.world.collides(self.bird.get_rect()):
             settings.SOUNDS["explosion"].play()
             settings.SOUNDS["hurt"].play()
-            self.state_machine.change("count_down")
+            self.state_machine.change("title")
             return
 
         if self.world.update_scored(self.bird.get_rect()):
@@ -65,13 +68,14 @@ class PlayingState(BaseState):
         )
 
     def on_input(self, input_id: str, input_data: InputData) -> None:
-        if input_id == "jump" and input_data.pressed:
-            self.bird.jump()
-        elif input_id == "pause" and input_data.pressed:
+        if input_id == "pause" and input_data.pressed:
             settings.SOUNDS["score"].play()
             self.state_machine.change(
                 "pause", 
                 world=self.world, 
                 bird=self.bird, 
-                score=self.score
+                score=self.score,
+                mode =self.mode
             )
+            return
+        self.mode.on_input(self.bird, input_id, input_data)

@@ -20,6 +20,7 @@ class Bird:
         self.width: float = width
         self.height: float = height
         self.vy: float = 0.0
+        self.vx: float = 0.0
         self.jumping: bool = False
 
     def get_rect(self) -> pygame.Rect:
@@ -37,6 +38,13 @@ class Bird:
             self.jumping = False
 
         self.y += self.vy * dt
+
+        self.x += self.vx * dt
+
+        if self.x < 0:
+            self.x = 0
+        elif self.x > settings.VIRTUAL_WIDTH - self.width:
+            self.x = settings.VIRTUAL_WIDTH - self.width
 
     def render(self, surface: pygame.Surface) -> None:
         surface.blit(settings.TEXTURES["bird"], self.get_rect())
