@@ -10,18 +10,20 @@ This file contains the definition of the class CountDownState.
 
 import pygame
 
-from gale.state import BaseState
-from gale.text import render_text
+from gale.state import Any, BaseState
+from gale.text import Optional, render_text
 
 import settings
 from src.World import World
+from src.strategies import NormalStrategyMode
 
 
 class CountDownState(BaseState):
-    def enter(self) -> None:
+    def enter(self,mode: Optional[Any]= None) -> None:
         self.world = World(generate_logs=False)
         self.counter = 3
         self.timer = 0.0
+        self.mode = mode if mode is not None else NormalStrategyMode()
 
     def update(self, dt: float) -> None:
         self.timer += dt
@@ -31,7 +33,7 @@ class CountDownState(BaseState):
             self.counter -= 1
 
             if self.counter == 0:
-                self.state_machine.change("playing", world=self.world)
+                self.state_machine.change("playing", world=self.world, mode=self.mode)
                 return
 
         self.world.update(dt)

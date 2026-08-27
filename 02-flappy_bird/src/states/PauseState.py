@@ -1,18 +1,22 @@
 import pygame
 
 from gale.input_handler import InputData
-from gale.state import BaseState
+from gale.state import Any, BaseState, Optional
 from gale.text import render_text
 
 from src.Bird import Bird
 from src.World import World
 import settings
 
+from src.strategies import NormalStrategyMode
+
+
 class PauseState(BaseState):
-    def enter(self, world: World,bird:Bird,score:int) -> None:
+    def enter(self, world: World,bird:Bird,score:int,mode: Optional[Any] = None) -> None:
         self.world = world
         self.bird = bird
         self.score = score
+        self.mode = mode if mode is not None else NormalStrategyMode()
 
     def render(self, surface: pygame.Surface) -> None:
         self.world.render(surface)
@@ -44,5 +48,6 @@ class PauseState(BaseState):
                 "playing", 
                 world=self.world, 
                 bird=self.bird, 
-                score=self.score
+                score=self.score,
+                mode=self.mode
             )
