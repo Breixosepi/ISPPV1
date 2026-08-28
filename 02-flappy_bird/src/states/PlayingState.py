@@ -21,16 +21,19 @@ from src.Bird import Bird
 from src.World import World
 
 from src.strategies import NormalStrategyMode
+from src.strategies import HardStrategyMode
 
 
 class PlayingState(BaseState):
     def enter(self, world: Optional[World] = None, bird:Optional[Bird] = None,score :int = 0, mode: Optional[Any] = None) -> None:
+        self.mode = mode if mode is not None else NormalStrategyMode()
         self.world = world if world is not None else World()
 
         if bird is not None:
             self.bird = bird
         else:
-            self.world.reset(True)
+            is_hard = isinstance(self.mode, HardStrategyMode)
+            self.world.reset(generate_logs = not is_hard, generate_booster = is_hard)
             self.bird = Bird(
                 settings.VIRTUAL_WIDTH / 2 - settings.BIRD_WIDTH / 2,
                 settings.VIRTUAL_HEIGHT / 2 - settings.BIRD_HEIGHT / 2,
@@ -38,13 +41,24 @@ class PlayingState(BaseState):
                 settings.BIRD_HEIGHT,
             )
         self.score = score
+        self.was_boosted = False
         self.mode = mode if mode is not None else NormalStrategyMode()
 
     def update(self, dt: float) -> None:
         self.bird.update(dt)
         self.mode.update_world(self.world, dt)
 
-        if self.world.collides(self.bird.get_rect()):
+        if self.world.check_booster(self.bird.get_rect()):
+            self.bird.activate_boost(6.0)
+            settings.SOUNDS["booster_effect"].play()
+            pygame.mixer.music.pause()
+
+        current_boost_state = getattr(self.bird, "is_boosted", False)
+        if self.was_boosted and not current_boost_state:
+            pygame.mixer.music.unpause()
+        self.was_boosted = current_boost_state
+
+        if self.world.collides(self.bird.get_rect(),ignore=self.bird.is_boosted):
             settings.SOUNDS["explosion"].play()
             settings.SOUNDS["hurt"].play()
             self.state_machine.change("title")

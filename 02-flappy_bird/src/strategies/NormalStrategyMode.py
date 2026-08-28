@@ -9,4 +9,6 @@ class NormalStrategyMode(StrategyMode):
         if input_id == "jump" and input_data.pressed:
             bird.jump()
     def update_world(self, world, dt: float) -> None:
+        world.generate_logs = True
+        world.generate_boosters = False
         world.update(dt)

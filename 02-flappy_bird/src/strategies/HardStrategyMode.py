@@ -9,8 +9,8 @@ import random
 class HardStrategyMode(StrategyMode):
     def __init__(self):
         self.spawn_timer = float = 0.0
-        self.min_spawn_time = float = 1.2
-        self.max_spawn_time = float = 2.4
+        self.min_spawn_time = float = 1.4
+        self.max_spawn_time = float = 2.8
         self.next_spawn_time = float = random.uniform(self.min_spawn_time, self.max_spawn_time)
 
     def on_input(self,bird, input_id: str, input_data) -> None:
@@ -31,6 +31,7 @@ class HardStrategyMode(StrategyMode):
 
     def update_world(self, world, dt: float) -> None:
         world.generate_logs = False
+        world.generate_boosters = True
         self.spawn_timer += dt
         if self.spawn_timer >= self.next_spawn_time:
             self.spawn_timer = 0.0
