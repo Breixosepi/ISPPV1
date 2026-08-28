@@ -37,6 +37,9 @@ VIRTUAL_HEIGHT = 288
 BIRD_WIDTH = 39
 BIRD_HEIGHT = 28
 
+BOOSTER_WIDTH = 50
+BOOSTER_HEIGHT = 50
+
 LOG_WIDTH = 70
 LOG_HEIGHT = 288
 LOGS_GAP = 90
@@ -64,6 +67,7 @@ TEXTURES = {
     "background": pygame.image.load(BASE_DIR / "assets" / "graphics" / "background.png"),
     "ground": pygame.image.load(BASE_DIR / "assets" / "graphics" / "ground.png"),
     "log": pygame.image.load(BASE_DIR / "assets" / "graphics" / "log.png"),
+    "booster": pygame.transform.scale(pygame.image.load(BASE_DIR / "assets" / "graphics" / "shield_booster.png"),(BOOSTER_WIDTH, BOOSTER_HEIGHT),),
 }
 # The top log of every pair is the same image, flipped upside down.
 TEXTURES["log_inverted"] = pygame.transform.flip(TEXTURES["log"], False, True)
@@ -73,6 +77,8 @@ SOUNDS = {
     "explosion": pygame.mixer.Sound(BASE_DIR / "assets" / "sounds" / "explosion.wav"),
     "hurt": pygame.mixer.Sound(BASE_DIR / "assets" / "sounds" / "hurt.wav"),
     "score": pygame.mixer.Sound(BASE_DIR / "assets" / "sounds" / "score.wav"),
+    "booster_effect": pygame.mixer.Sound(BASE_DIR / "assets" / "sounds" / "booster.mp3"),
+    "log_bump" : pygame.mixer.Sound(BASE_DIR / "assets" / "sounds" / "bump.mp3"),
 }
 
 pygame.mixer.music.load(BASE_DIR / "assets" / "sounds" / "marios_way.ogg")
