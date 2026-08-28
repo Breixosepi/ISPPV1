@@ -44,6 +44,8 @@ class PauseState(BaseState):
     def on_input(self, input_id: str, input_data: InputData) -> None:
         if input_id == "pause" and input_data.pressed:
             settings.SOUNDS["score"].play()
+            pygame.mixer.music.unpause()
+            pygame.mixer.unpause()
             self.state_machine.change(
                 "playing", 
                 world=self.world, 
