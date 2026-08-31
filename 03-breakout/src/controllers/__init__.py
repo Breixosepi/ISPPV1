@@ -1,4 +1,5 @@
 from src.controllers.CatchController import CatchController
 from src.controllers.CannonController import CannonController
+from src.controllers.FireballController import FireballController
 
-(CatchController,CannonController)
+(CatchController,CannonController,FireballController)

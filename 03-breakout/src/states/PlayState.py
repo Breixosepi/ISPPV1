@@ -20,6 +20,7 @@ from gale.text import render_text
 import settings
 from src.controllers.CatchController import CatchController
 from src.controllers.CannonController import CannonController
+from src.controllers.FireballController import FireballController
 import src.powerups
 
 class PlayState(BaseState):
@@ -46,6 +47,7 @@ class PlayState(BaseState):
         self.powerups_abstract_factory = AbstractFactory("src.powerups")
         self.catch_controller = CatchController(self.paddle)
         self.cannon_controller = CannonController(self.paddle)
+        self.fireball_controller = FireballController()
 
         catch_state = params.get("catch_state")
         if catch_state is not None:
@@ -62,10 +64,19 @@ class PlayState(BaseState):
             self.cannon_controller.anim_timer = cannon_state.get("anim_timer", 0.0)
             self.cannon_controller.frame_index = cannon_state.get("frame_index", 0)
 
+        fireball_state = params.get("fireball_state")
+        if fireball_state is not None:
+            self.fireball_controller.active = fireball_state.get("active", False)
+            self.fireball_controller.timer = fireball_state.get("timer", 0.0)
+            self.fireball_controller.current_color_idx = fireball_state.get("current_color_idx", 0)
+            self.fireball_controller.frame_index = fireball_state.get("frame_index", 0)
+            self.fireball_controller.anim_timer = fireball_state.get("anim_timer", 0.0)
+
     def update(self, dt: float) -> None:
         self.paddle.update(dt)
         self.catch_controller.update(dt)
         self.cannon_controller.update(dt,self)
+        self.fireball_controller.update(dt, self)
 
         for ball in self.balls:
             ball.update(dt)
@@ -90,7 +101,8 @@ class PlayState(BaseState):
 
             brick.hit()
             self.score += brick.score()
-            ball.rebound(brick)
+            if not self.fireball_controller.is_active():
+                ball.rebound(brick)
 
             # Check earn life
             if self.score >= self.points_to_next_live:
@@ -107,28 +119,17 @@ class PlayState(BaseState):
                 )
                 self.paddle.inc_size()
 
-            # Chance to generate two more balls
-            if random.random() < 0.1:
+            # Chance to generate powerups
+            if random.random() < 0.4:
                 r = brick.get_collision_rect()
+                
+                powerup_type = random.choice(["TwoMoreBall", "PaddleCatch", "PaddleCannon", "Fireball"])
+                
                 self.powerups.append(
-                    self.powerups_abstract_factory.get_factory("TwoMoreBall").create(
+                    self.powerups_abstract_factory.get_factory(powerup_type).create(
                         r.centerx - 8, r.centery - 8
                     )
                 )
-            elif random.random() < 0.2:
-                r = brick.get_collision_rect()
-                self.powerups.append(
-                    self.powerups_abstract_factory.get_factory("PaddleCatch").create(
-                        r.centerx - 8, r.centery - 8
-                    )
-                )
-            elif random.random() < 0.3:
-                r = brick.get_collision_rect()
-                self.powerups.append(
-                self.powerups_abstract_factory.get_factory("PaddleCannon").create(
-                    r.centerx - 8, r.centery - 8
-                    )   
-                )  
 
         # Removing all balls that are not in play
         self.balls = [ball for ball in self.balls if ball.active]
@@ -210,6 +211,7 @@ class PlayState(BaseState):
 
         self.paddle.render(surface)
         self.cannon_controller.render(surface)
+        self.fireball_controller.render(surface, self.balls)
 
         for ball in self.balls:
             ball.render(surface)
@@ -255,6 +257,13 @@ class PlayState(BaseState):
                         "animating": self.cannon_controller.animating,
                         "anim_timer": self.cannon_controller.anim_timer,
                         "frame_index": self.cannon_controller.frame_index,
+                    },
+                    fireball_state={
+                        "active": self.fireball_controller.active,
+                        "timer": self.fireball_controller.timer,
+                        "current_color_idx": self.fireball_controller.current_color_idx,
+                        "frame_index": self.fireball_controller.frame_index,
+                        "anim_timer": self.fireball_controller.anim_timer,
                     },
                 )
         elif input_id == "fire" and input_data.pressed:

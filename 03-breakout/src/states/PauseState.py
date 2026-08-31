@@ -20,6 +20,7 @@ class PauseState(BaseState):
         self.powerups = params["powerups"]
         self.catch_state = params.get("catch_state")
         self.cannon_state = params.get("cannon_state")
+        self.fireball_state = params.get("fireball_state")
         settings.SOUNDS["pause"].play()
 
     def render(self, surface: pygame.Surface) -> None:
@@ -79,5 +80,6 @@ class PauseState(BaseState):
                 powerups=self.powerups,
                 catch_state=self.catch_state,
                 cannon_state=self.cannon_state,
+                fireball_state=self.fireball_state,
                 resume=True,
             )

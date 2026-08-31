@@ -23,6 +23,7 @@ from src.utilities.frames import (
     generate_brick_frames,
     generate_powerups_frames,
     generate_cannon_frames,
+    generate_fireball_frames,
 )
 
 input_handler.InputHandler.set_keyboard_action(input_handler.KEY_ESCAPE, "quit")
@@ -85,6 +86,7 @@ TEXTURES = {
     "hearts": pygame.image.load(BASE_DIR / "assets" / "graphics" / "hearts.png"),
     "arrows": pygame.image.load(BASE_DIR / "assets" / "graphics" / "arrows.png"),
     "cannon": pygame.image.load(BASE_DIR / "assets" / "graphics" / "cannon.png"),
+    "fireball": pygame.image.load(BASE_DIR / "assets" / "graphics" / "fireball.png"),
 }
 
 FRAMES = {
@@ -95,6 +97,7 @@ FRAMES = {
     "arrows": generate_frames(TEXTURES["arrows"], 24, 24),
     "powerups": generate_powerups_frames(),
     "cannons": generate_cannon_frames(TEXTURES["cannon"]),
+    "fireballs": generate_fireball_frames(TEXTURES["fireball"]),
 }
 
 FONTS = {

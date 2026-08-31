@@ -94,3 +94,20 @@ def generate_cannon_frames(texture: pygame.Surface) -> List[pygame.Rect]:
         frames.append(pygame.Rect(i * frame_width, 0, frame_width, frame_height))
 
     return frames
+
+def generate_fireball_frames(texture: pygame.Surface) -> List[List[pygame.Rect]]:
+    cols = 4
+    rows = 5
+    frame_width = texture.get_width() // cols
+    frame_height = texture.get_height() // rows
+
+    fireball_frames = []
+    for i in range(rows):
+        color_row = []
+        for j in range(cols):
+            color_row.append(
+                pygame.Rect(j * frame_width, i * frame_height, frame_width, frame_height)
+            )
+        fireball_frames.append(color_row)
+
+    return fireball_frames
