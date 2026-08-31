@@ -22,6 +22,7 @@ from src.utilities.frames import (
     generate_ball_frames,
     generate_brick_frames,
     generate_powerups_frames,
+    generate_cannon_frames,
 )
 
 input_handler.InputHandler.set_keyboard_action(input_handler.KEY_ESCAPE, "quit")
@@ -31,6 +32,7 @@ input_handler.InputHandler.set_keyboard_action(input_handler.KEY_RIGHT, "move_ri
 input_handler.InputHandler.set_keyboard_action(input_handler.KEY_DOWN, "move_down")
 input_handler.InputHandler.set_keyboard_action(input_handler.KEY_LEFT, "move_left")
 input_handler.InputHandler.set_keyboard_action(input_handler.KEY_SPACE, "pause")
+input_handler.InputHandler.set_keyboard_action(input_handler.KEY_f, "fire")
 
 TITLE = "Breakout"
 
@@ -82,6 +84,7 @@ TEXTURES = {
     "spritesheet": pygame.image.load(BASE_DIR / "assets" / "graphics" / "breakout.png"),
     "hearts": pygame.image.load(BASE_DIR / "assets" / "graphics" / "hearts.png"),
     "arrows": pygame.image.load(BASE_DIR / "assets" / "graphics" / "arrows.png"),
+    "cannon": pygame.image.load(BASE_DIR / "assets" / "graphics" / "cannon.png"),
 }
 
 FRAMES = {
@@ -91,6 +94,7 @@ FRAMES = {
     "hearts": generate_frames(TEXTURES["hearts"], 10, 9),
     "arrows": generate_frames(TEXTURES["arrows"], 24, 24),
     "powerups": generate_powerups_frames(),
+    "cannons": generate_cannon_frames(TEXTURES["cannon"]),
 }
 
 FONTS = {

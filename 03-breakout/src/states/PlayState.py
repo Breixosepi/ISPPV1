@@ -19,6 +19,7 @@ from gale.text import render_text
 
 import settings
 from src.controllers.CatchController import CatchController
+from src.controllers.CannonController import CannonController
 import src.powerups
 
 class PlayState(BaseState):
@@ -44,10 +45,27 @@ class PlayState(BaseState):
 
         self.powerups_abstract_factory = AbstractFactory("src.powerups")
         self.catch_controller = CatchController(self.paddle)
+        self.cannon_controller = CannonController(self.paddle)
+
+        catch_state = params.get("catch_state")
+        if catch_state is not None:
+            self.catch_controller.active = catch_state.get("active", False)
+            self.catch_controller.timer = catch_state.get("timer", 0.0)
+            self.catch_controller.caught_balls = catch_state.get("caught_balls", [])
+
+        cannon_state = params.get("cannon_state")
+        if cannon_state is not None:
+            self.cannon_controller.active = cannon_state.get("active", False)
+            self.cannon_controller.timer = cannon_state.get("timer", 0.0)
+            self.cannon_controller.projectiles = cannon_state.get("projectiles", [])
+            self.cannon_controller.animating = cannon_state.get("animating", False)
+            self.cannon_controller.anim_timer = cannon_state.get("anim_timer", 0.0)
+            self.cannon_controller.frame_index = cannon_state.get("frame_index", 0)
 
     def update(self, dt: float) -> None:
         self.paddle.update(dt)
         self.catch_controller.update(dt)
+        self.cannon_controller.update(dt,self)
 
         for ball in self.balls:
             ball.update(dt)
@@ -104,6 +122,13 @@ class PlayState(BaseState):
                         r.centerx - 8, r.centery - 8
                     )
                 )
+            elif random.random() < 0.3:
+                r = brick.get_collision_rect()
+                self.powerups.append(
+                self.powerups_abstract_factory.get_factory("PaddleCannon").create(
+                    r.centerx - 8, r.centery - 8
+                    )   
+                )  
 
         # Removing all balls that are not in play
         self.balls = [ball for ball in self.balls if ball.active]
@@ -184,6 +209,7 @@ class PlayState(BaseState):
         self.brickset.render(surface)
 
         self.paddle.render(surface)
+        self.cannon_controller.render(surface)
 
         for ball in self.balls:
             ball.render(surface)
@@ -217,4 +243,19 @@ class PlayState(BaseState):
                     points_to_next_live=self.points_to_next_live,
                     live_factor=self.live_factor,
                     powerups=self.powerups,
-            )
+                    catch_state={
+                        "active": self.catch_controller.active,
+                        "timer": self.catch_controller.timer,
+                        "caught_balls": self.catch_controller.caught_balls,
+                    },
+                    cannon_state={
+                        "active": self.cannon_controller.active,
+                        "timer": self.cannon_controller.timer,
+                        "projectiles": self.cannon_controller.projectiles,
+                        "animating": self.cannon_controller.animating,
+                        "anim_timer": self.cannon_controller.anim_timer,
+                        "frame_index": self.cannon_controller.frame_index,
+                    },
+                )
+        elif input_id == "fire" and input_data.pressed:
+            self.cannon_controller.fire()
