@@ -120,10 +120,10 @@ class PlayState(BaseState):
                 self.paddle.inc_size()
 
             # Chance to generate powerups
-            if random.random() < 0.4:
+            if random.random() < 0.3:
                 r = brick.get_collision_rect()
                 
-                powerup_type = random.choice(["TwoMoreBall", "PaddleCatch", "PaddleCannon", "Fireball"])
+                powerup_type = random.choices(["TwoMoreBall", "PaddleCatch", "PaddleCannon", "Fireball"], weights=[35, 30, 20, 10], k=1)[0]
                 
                 self.powerups.append(
                     self.powerups_abstract_factory.get_factory(powerup_type).create(
