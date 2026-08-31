@@ -18,8 +18,8 @@ from gale.input_handler import InputData
 from gale.text import render_text
 
 import settings
+from src.controllers.CatchController import CatchController
 import src.powerups
-
 
 class PlayState(BaseState):
     def enter(self, **params: dict):
@@ -43,9 +43,11 @@ class PlayState(BaseState):
             settings.SOUNDS["paddle_hit"].play()
 
         self.powerups_abstract_factory = AbstractFactory("src.powerups")
+        self.catch_controller = CatchController(self.paddle)
 
     def update(self, dt: float) -> None:
         self.paddle.update(dt)
+        self.catch_controller.update(dt)
 
         for ball in self.balls:
             ball.update(dt)
@@ -53,10 +55,11 @@ class PlayState(BaseState):
 
             # Check collision with the paddle
             if ball.collides(self.paddle):
-                settings.SOUNDS["paddle_hit"].stop()
-                settings.SOUNDS["paddle_hit"].play()
-                ball.rebound(self.paddle)
-                ball.push(self.paddle)
+                if not self.catch_controller.try_catch(ball):
+                    settings.SOUNDS["paddle_hit"].stop()
+                    settings.SOUNDS["paddle_hit"].play()
+                    ball.rebound(self.paddle)
+                    ball.push(self.paddle)
 
             # Check collision with brickset
             if not ball.collides(self.brickset):
@@ -91,6 +94,13 @@ class PlayState(BaseState):
                 r = brick.get_collision_rect()
                 self.powerups.append(
                     self.powerups_abstract_factory.get_factory("TwoMoreBall").create(
+                        r.centerx - 8, r.centery - 8
+                    )
+                )
+            elif random.random() < 0.2:
+                r = brick.get_collision_rect()
+                self.powerups.append(
+                    self.powerups_abstract_factory.get_factory("PaddleCatch").create(
                         r.centerx - 8, r.centery - 8
                     )
                 )
@@ -193,15 +203,18 @@ class PlayState(BaseState):
             elif input_data.released and self.paddle.vx > 0:
                 self.paddle.vx = 0
         elif input_id == "pause" and input_data.pressed:
-            self.state_machine.change(
-                "pause",
-                level=self.level,
-                score=self.score,
-                lives=self.lives,
-                paddle=self.paddle,
-                balls=self.balls,
-                brickset=self.brickset,
-                points_to_next_live=self.points_to_next_live,
-                live_factor=self.live_factor,
-                powerups=self.powerups,
+            if self.catch_controller.has_caught_balls():
+                self.catch_controller.release_balls()
+            else:
+                self.state_machine.change(
+                    "pause",
+                    level=self.level,
+                    score=self.score,
+                    lives=self.lives,
+                    paddle=self.paddle,
+                    balls=self.balls,
+                    brickset=self.brickset,
+                    points_to_next_live=self.points_to_next_live,
+                    live_factor=self.live_factor,
+                    powerups=self.powerups,
             )
