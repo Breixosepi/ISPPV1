@@ -23,7 +23,8 @@ input_handler.InputHandler.set_keyboard_action(input_handler.KEY_KP_ENTER, "ente
 input_handler.InputHandler.set_keyboard_action(input_handler.KEY_RETURN, "enter")
 input_handler.InputHandler.set_keyboard_action(input_handler.KEY_UP, "up")
 input_handler.InputHandler.set_keyboard_action(input_handler.KEY_DOWN, "down")
-input_handler.InputHandler.set_mouse_click_action(input_handler.MOUSE_BUTTON_1, "click")
+input_handler.InputHandler.set_mouse_click_action(input_handler.MOUSE_BUTTON_1, "touch")
+input_handler.InputHandler.set_mouse_motion_action(None, "touch_motion")
 
 TITLE = "Match 3"
 

@@ -34,6 +34,11 @@ class PlayState(BaseState):
 
         self.highlighted_tile = False
 
+        self.dragging = False
+        self.drag_tile = None
+        self.drag_origin_i = -1
+        self.drag_origin_j = -1
+
         self.active = True
 
         self.timer = settings.LEVEL_TIME
@@ -127,66 +132,121 @@ class PlayState(BaseState):
         if not self.active:
             return
 
-        if input_id == "click" and input_data.pressed:
-            pos_x, pos_y = input_data.position
-            pos_x = pos_x * settings.VIRTUAL_WIDTH // settings.WINDOW_WIDTH
-            pos_y = pos_y * settings.VIRTUAL_HEIGHT // settings.WINDOW_HEIGHT
-            i = (pos_y - self.board.y) // settings.TILE_SIZE
-            j = (pos_x - self.board.x) // settings.TILE_SIZE
+        if input_id == "touch":
+            self._on_touch(input_data)
+        elif input_id == "touch_motion":
+            self._on_touch_motion(input_data)
 
-            if 0 <= i < settings.BOARD_HEIGHT and 0 <= j <= settings.BOARD_WIDTH:
-                if not self.highlighted_tile:
-                    self.highlighted_tile = True
-                    self.highlighted_i1 = i
-                    self.highlighted_j1 = j
-                else:
-                    self.highlighted_i2 = i
-                    self.highlighted_j2 = j
-                    di = abs(self.highlighted_i2 - self.highlighted_i1)
-                    dj = abs(self.highlighted_j2 - self.highlighted_j1)
+    def _mouse_to_virtual(self, position) -> pygame.Vector2:
+        scale_x = settings.VIRTUAL_WIDTH / settings.WINDOW_WIDTH
+        scale_y = settings.VIRTUAL_HEIGHT / settings.WINDOW_HEIGHT
+        return pygame.Vector2(position[0] * scale_x, position[1] * scale_y)
 
-                    if di <= 1 and dj <= 1 and di != dj:
-                        self.active = False
-                        tile1 = self.board.tiles[self.highlighted_i1][
-                            self.highlighted_j1
-                        ]
-                        tile2 = self.board.tiles[self.highlighted_i2][
-                            self.highlighted_j2
-                        ]
+    def _cell_from_mouse(self, position: pygame.Vector2):
+        x = position.x - self.board.x
+        y = position.y - self.board.y
+        i = y // settings.TILE_SIZE
+        j = x // settings.TILE_SIZE
 
-                        def arrive():
-                            tile1 = self.board.tiles[self.highlighted_i1][
-                                self.highlighted_j1
-                            ]
-                            tile2 = self.board.tiles[self.highlighted_i2][
-                                self.highlighted_j2
-                            ]
-                            (
-                                self.board.tiles[tile1.i][tile1.j],
-                                self.board.tiles[tile2.i][tile2.j],
-                            ) = (
-                                self.board.tiles[tile2.i][tile2.j],
-                                self.board.tiles[tile1.i][tile1.j],
-                            )
-                            tile1.i, tile1.j, tile2.i, tile2.j = (
-                                tile2.i,
-                                tile2.j,
-                                tile1.i,
-                                tile1.j,
-                            )
-                            self._calculate_matches([tile1, tile2])
+        if 0 <= i < settings.BOARD_HEIGHT and 0 <= j < settings.BOARD_WIDTH:
+            return i, j
 
-                        # Swap tiles
-                        Timer.tween(
-                            0.25,
-                            [
-                                (tile1, {"x": tile2.x, "y": tile2.y}),
-                                (tile2, {"x": tile1.x, "y": tile1.y}),
-                            ],
-                            on_finish=arrive,
-                        )
+        return None
 
-                    self.highlighted_tile = False
+    def _on_touch(self, input_data: InputData) -> None:
+        position = self._mouse_to_virtual(input_data.position)
+
+        if input_data.pressed:
+            cell = self._cell_from_mouse(position)
+            if cell is None:
+                return
+
+            i, j = cell
+            tile = self.board.tiles[i][j]
+            self.dragging = True
+            self.drag_tile = tile
+            self.drag_origin_i = i
+            self.drag_origin_j = j
+            self.highlighted_tile = True
+            self.highlighted_i1 = i
+            self.highlighted_j1 = j
+            self.drag_tile.x = position.x - self.board.x
+            self.drag_tile.y = position.y - self.board.y
+        elif input_data.released:
+            if not self.dragging or self.drag_tile is None:
+                return
+
+            position = self._mouse_to_virtual(input_data.position)
+            target = self._cell_from_mouse(position)
+            self.dragging = False
+            self.highlighted_tile = False
+
+            if target is None:
+                self._reset_drag_tile()
+                return
+
+            target_i, target_j = target
+            di = abs(target_i - self.drag_origin_i)
+            dj = abs(target_j - self.drag_origin_j)
+
+            if di <= 1 and dj <= 1 and di != dj:
+                self.active = False
+                tile1 = self.board.tiles[self.drag_origin_i][self.drag_origin_j]
+                tile2 = self.board.tiles[target_i][target_j]
+
+                tile1.x = tile1.j * settings.TILE_SIZE
+                tile1.y = tile1.i * settings.TILE_SIZE
+                tile2.x = tile2.j * settings.TILE_SIZE
+                tile2.y = tile2.i * settings.TILE_SIZE
+
+                def arrive():
+                    tile1 = self.board.tiles[self.drag_origin_i][self.drag_origin_j]
+                    tile2 = self.board.tiles[target_i][target_j]
+                    (
+                        self.board.tiles[tile1.i][tile1.j],
+                        self.board.tiles[tile2.i][tile2.j],
+                    ) = (
+                        self.board.tiles[tile2.i][tile2.j],
+                        self.board.tiles[tile1.i][tile1.j],
+                    )
+                    tile1.i, tile1.j, tile2.i, tile2.j = (
+                        tile2.i,
+                        tile2.j,
+                        tile1.i,
+                        tile1.j,
+                    )
+                    self.drag_tile = None
+                    self._calculate_matches([tile1, tile2])
+
+                Timer.tween(
+                    0.25,
+                    [
+                        (tile1, {"x": tile2.x, "y": tile2.y}),
+                        (tile2, {"x": tile1.x, "y": tile1.y}),
+                    ],
+                    on_finish=arrive,
+                )
+            else:
+                self._reset_drag_tile()
+
+            self.drag_tile = None
+
+    def _on_touch_motion(self, input_data: InputData) -> None:
+        if not self.dragging or self.drag_tile is None:
+            return
+
+        position = self._mouse_to_virtual(input_data.position)
+        self.drag_tile.x = position.x - self.board.x
+        self.drag_tile.y = position.y - self.board.y
+
+    def _reset_drag_tile(self) -> None:
+        if self.drag_tile is None:
+            return
+
+        self.drag_tile.x = self.drag_tile.j * settings.TILE_SIZE
+        self.drag_tile.y = self.drag_tile.i * settings.TILE_SIZE
+        self.drag_tile = None
+        self.dragging = False
 
     def _calculate_matches(self, tiles: List) -> None:
         matches = self.board.calculate_matches_for(tiles)
