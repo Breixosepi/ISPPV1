@@ -37,6 +37,12 @@ SAVE_SLOTS = ["slot1", "slot2", "slot3"]
 
 BASE_DIR = pathlib.Path(__file__).parent
 
+# Absolute, so saves always land next to this game regardless of the
+# working directory the game happens to be launched from -- gale.save's
+# own default ("saves") is a relative path resolved against the
+# process's cwd, not this file's location.
+SAVE_DIR = BASE_DIR / "saves"
+
 VIRTUAL_WIDTH = 384
 VIRTUAL_HEIGHT = 224
 
