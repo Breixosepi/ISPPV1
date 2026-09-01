@@ -24,6 +24,8 @@ class BeginGameState(BaseState):
     def enter(self, **enter_params: Dict[str, Any]) -> None:
         self.transition_alpha = 255
         self.board = Board(settings.VIRTUAL_WIDTH - 272, 16)
+        if not self.board.has_valid_move():
+            self.board.recreate_board()
         self.level_label_y = -64
         self.level = enter_params.get("level", 1)
         self.score = enter_params.get("score", 0)

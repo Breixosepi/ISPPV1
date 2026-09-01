@@ -60,6 +60,57 @@ class Board:
                     i, j, color, random.randint(0, settings.NUM_VARIETIES - 1)
                 )
 
+    def recreate_board(self) -> List[Tuple[Tile, Dict[str, Any]]]:
+        self.matches = []
+        while True:
+            self._initialize_tiles()
+            if self.has_valid_move():
+                break
+
+        tweens: List[Tuple[Tile, Dict[str, Any]]] = []
+        for i in range(settings.BOARD_HEIGHT):
+            for j in range(settings.BOARD_WIDTH):
+                tile = self.tiles[i][j]
+                tile.y = (i - 2) * settings.TILE_SIZE
+                tweens.append((tile, {"y": tile.i * settings.TILE_SIZE}))
+
+        return tweens
+
+    def find_valid_move(self) -> Optional[Tuple[int, int, int, int]]:
+        for i in range(settings.BOARD_HEIGHT):
+            for j in range(settings.BOARD_WIDTH):
+                if j + 1 < settings.BOARD_WIDTH:
+                    if self._swap_creates_match(i, j, i, j + 1):
+                        return i, j, i, j + 1
+                if i + 1 < settings.BOARD_HEIGHT:
+                    if self._swap_creates_match(i, j, i + 1, j):
+                        return i, j, i + 1, j
+        return None
+
+    def has_valid_move(self) -> bool:
+        return self.find_valid_move() is not None
+
+    def _swap_creates_match(self, i1: int, j1: int, i2: int, j2: int) -> bool:
+        if abs(i1 - i2) + abs(j1 - j2) != 1:
+            return False
+
+        tile1 = self.tiles[i1][j1]
+        tile2 = self.tiles[i2][j2]
+
+        self.tiles[i1][j1] = tile2
+        self.tiles[i2][j2] = tile1
+        tile1.i, tile1.j, tile2.i, tile2.j = i2, j2, i1, j1
+
+        matches = self.calculate_matches_for([tile1, tile2])
+        self.matches = []
+
+        self.tiles[i1][j1] = tile1
+        self.tiles[i2][j2] = tile2
+        tile1.i, tile1.j = i1, j1
+        tile2.i, tile2.j = i2, j2
+
+        return matches is not None
+
     def _calculate_match_rec(self, tile: Tile) -> Set[Tile]:
         if tile in self.in_stack:
             return []

@@ -8,6 +8,7 @@ alejandro.j.mujic4@gmail.com
 This file contains the class PlayState.
 """
 
+import math
 from typing import Dict, Any, List
 
 import pygame
@@ -42,6 +43,12 @@ class PlayState(BaseState):
         self.drag_target_y = 0
         self.hover_i = -1
         self.hover_j = -1
+        self.hint_move = None
+        self.hint_elapsed = 0.0
+        self.rebuild_pending = False
+        self.rebuild_elapsed = 0.0
+        self.rebuild_duration = 0.5
+        self.timer_paused = False
 
         self.active = True
 
@@ -67,6 +74,9 @@ class PlayState(BaseState):
         )
 
         def decrement_timer():
+            if self.timer_paused or self.rebuild_pending:
+                return
+
             self.timer -= 1
 
             # Play warning sound on timer if we get low
@@ -76,9 +86,24 @@ class PlayState(BaseState):
         Timer.every(1, decrement_timer)
 
     def update(self, dt: float) -> None:
+        if self.rebuild_pending:
+            self.rebuild_elapsed += dt
+            if self.rebuild_elapsed >= self.rebuild_duration:
+                tweens = self.board.recreate_board()
+                self.rebuild_pending = False
+                self.rebuild_elapsed = 0.0
+                self.timer_paused = False
+                self.active = True
+                self.hint_move = None
+                self.hint_elapsed = 0.0
+                Timer.tween(0.4, tweens, on_finish=lambda: None)
+            return
+
         if self.dragging and self.drag_tile is not None:
             self.drag_tile.x += (self.drag_target_x - self.drag_tile.x) * min(1.0, dt * 20)
             self.drag_tile.y += (self.drag_target_y - self.drag_tile.y) * min(1.0, dt * 20)
+
+        self._update_hint(dt)
 
         if self.timer <= 0:
             Timer.clear()
@@ -92,6 +117,34 @@ class PlayState(BaseState):
 
     def render(self, surface: pygame.Surface) -> None:
         self.board.render(surface)
+
+        if self.hint_move is not None and not self.dragging:
+            i1, j1, i2, j2 = self.hint_move
+            for i, j in ((i1, j1), (i2, j2)):
+                x = j * settings.TILE_SIZE + self.board.x
+                y = i * settings.TILE_SIZE + self.board.y
+                pulse = 90 + int(55 * abs(math.sin(self.hint_elapsed * 10)))
+                hint_rect = pygame.Surface(
+                    (settings.TILE_SIZE, settings.TILE_SIZE), pygame.SRCALPHA
+                )
+                pygame.draw.rect(
+                    hint_rect,
+                    (255, 230, 150, pulse),
+                    pygame.Rect(0, 0, settings.TILE_SIZE, settings.TILE_SIZE),
+                    border_radius=7,
+                )
+                outline = pygame.Surface(
+                    (settings.TILE_SIZE + 6, settings.TILE_SIZE + 6), pygame.SRCALPHA
+                )
+                pygame.draw.rect(
+                    outline,
+                    (245, 200, 70, 180),
+                    pygame.Rect(0, 0, settings.TILE_SIZE + 6, settings.TILE_SIZE + 6),
+                    border_radius=9,
+                    width=2,
+                )
+                surface.blit(outline, (x - 3, y - 3))
+                surface.blit(hint_rect, (x, y))
 
         if self.dragging and self.drag_tile is not None:
             self.drag_tile.render(surface, self.board.x, self.board.y)
@@ -114,6 +167,18 @@ class PlayState(BaseState):
             x = self.highlighted_j1 * settings.TILE_SIZE + self.board.x
             y = self.highlighted_i1 * settings.TILE_SIZE + self.board.y
             surface.blit(self.tile_alpha_surface, (x, y))
+
+        if self.rebuild_pending:
+            overlay = pygame.Surface(
+                (settings.VIRTUAL_WIDTH, settings.VIRTUAL_HEIGHT), pygame.SRCALPHA
+            )
+            alpha = int(180 * min(1.0, self.rebuild_elapsed / self.rebuild_duration))
+            pygame.draw.rect(
+                overlay,
+                (15, 17, 26, alpha),
+                pygame.Rect(0, 0, settings.VIRTUAL_WIDTH, settings.VIRTUAL_HEIGHT),
+            )
+            surface.blit(overlay, (0, 0))
 
         surface.blit(self.text_alpha_surface, (16, 16))
         render_text(
@@ -201,6 +266,8 @@ class PlayState(BaseState):
             self.drag_tile.y = self.drag_target_y
             self.hover_i = i
             self.hover_j = j
+            self.hint_move = None
+            self.hint_elapsed = 0.0
         elif input_data.released:
             if not self.dragging or self.drag_tile is None:
                 return
@@ -330,11 +397,38 @@ class PlayState(BaseState):
 
         return self._would_create_match(self.drag_origin_i, self.drag_origin_j, i, j)
 
+    def _update_hint(self, dt: float) -> None:
+        if self.dragging or self.rebuild_pending or not self.active:
+            return
+
+        self.hint_elapsed += dt
+        if self.hint_elapsed < 10.0:
+            return
+
+        if self.hint_move is None:
+            self.hint_move = self.board.find_valid_move()
+            if self.hint_move is None:
+                self.hint_elapsed = 0.0
+                return
+
+    def _start_rebuild(self) -> None:
+        self.rebuild_pending = True
+        self.rebuild_elapsed = 0.0
+        self.active = False
+        self.timer_paused = True
+        self.hint_move = None
+        self.hint_elapsed = 0.0
+
     def _calculate_matches(self, tiles: List) -> None:
         matches = self.board.calculate_matches_for(tiles)
 
         if matches is None:
-            self.active = True
+            self.hint_move = None
+            self.hint_elapsed = 0.0
+            if not self.board.has_valid_move():
+                self._start_rebuild()
+            else:
+                self.active = True
             return
 
         settings.SOUNDS["match"].stop()
@@ -343,6 +437,8 @@ class PlayState(BaseState):
         for match in matches:
             self.score += len(match) * 50
 
+        self.hint_move = None
+        self.hint_elapsed = 0.0
         self.board.remove_matches()
 
         falling_tiles = self.board.get_falling_tiles()
