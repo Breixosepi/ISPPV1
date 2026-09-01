@@ -29,7 +29,7 @@ class World:
         self.ground_x: float = 0.0
         self.logs: List[LogPair] = []
         self.logs_spawn_timer: float = 0.0
-        self.last_log_y: float = -settings.LOG_HEIGHT + random.randint(0, 80) + 20
+        self.last_log_y: float = settings.MIN_LOG_Y + random.randint(0, 80) + 20
         self.log_pair_factory: Factory = Factory(LogPair)
         self.boosters: List[Booster] = []
         self.boosters_spawn_timer: float = 0.0
@@ -67,10 +67,10 @@ class World:
             if self.logs_spawn_timer >= settings.TIME_TO_SPAWN_LOGS:
                 self.logs_spawn_timer = 0.0
                 y = max(
-                    -settings.LOG_HEIGHT + 10,
+                    settings.MIN_LOG_Y,
                     min(
                         self.last_log_y + random.randint(-20, 20),
-                        settings.VIRTUAL_HEIGHT + 90 - settings.LOG_HEIGHT,
+                        settings.MAX_LOG_Y,
                     ),
                 )
                 self.last_log_y = y
