@@ -5,7 +5,7 @@ Study Case: Ultimate Fantasy (RPG)
 Author: Alejandro Mujica
 alejandro.j.mujic4@gmail.com
 
-This file contains the class ConfirmState: a generic "Sí"/"No" dialog
+This file contains the class ConfirmState: a generic "Yes"/"No" dialog
 pushed on top of whatever's asking. Used by PauseMenuState to warn about
 unsaved progress before loading a different slot or quitting -- both
 "do you want to save the current game first?", proceeding with whichever
@@ -40,7 +40,7 @@ class ConfirmState(BaseState):
             settings.VIRTUAL_HEIGHT / 2 + 10,
             100,
             48,
-            items=[("Sí", self._yes), ("No", self._no)],
+            items=[("Yes", self._yes), ("No", self._no)],
             font=settings.FONTS["small"],
         )
 

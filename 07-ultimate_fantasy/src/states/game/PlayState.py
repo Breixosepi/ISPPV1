@@ -23,11 +23,11 @@ from src.world.World import World
 # Human-friendly labels for World.current_region_name, shown on a save
 # slot's stat card (see SlotSelectState) instead of the raw internal key.
 REGION_LABELS = {
-    "center": "Pueblo",
-    "north": "Norte",
-    "south": "Sur",
-    "east": "Este",
-    "west": "Oeste",
+    "center": "Town",
+    "north": "North",
+    "south": "South",
+    "east": "East",
+    "west": "West",
 }
 
 

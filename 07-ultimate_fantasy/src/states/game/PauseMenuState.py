@@ -25,10 +25,10 @@ import settings
 from src.gui.Menu import Menu
 
 UNSAVED_LOAD_WARNING = (
-    "Hay progreso sin guardar. ¿Deseas guardar la partida actual antes de cargar otra?"
+    "You have unsaved progress. Do you want to save the current game before loading another?"
 )
 UNSAVED_QUIT_WARNING = (
-    "Hay progreso sin guardar. ¿Deseas guardar la partida actual antes de salir?"
+    "You have unsaved progress. Do you want to save the current game before quitting?"
 )
 
 
@@ -42,10 +42,10 @@ class PauseMenuState(BaseState):
             140,
             96,
             items=[
-                ("Continuar", self.close),
-                ("Guardar partida", self._save),
-                ("Cargar otra partida", self._load_another),
-                ("Salir", self._quit),
+                ("Continue", self.close),
+                ("Save game", self._save),
+                ("Load another game", self._load_another),
+                ("Quit", self._quit),
             ],
             font=settings.FONTS["small"],
         )
@@ -77,7 +77,7 @@ class PauseMenuState(BaseState):
         self.state_machine.push(
             ShowTextState(self.state_machine),
             color=(255, 255, 255),
-            text="partida guardada",
+            text="Game saved",
             on_complete=lambda: None,
         )
 

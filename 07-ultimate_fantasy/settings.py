@@ -31,8 +31,8 @@ input_handler.InputHandler.set_keyboard_action(input_handler.KEY_p, "pause")
 TITLE = "Ultimate Fantasy"
 
 # gale.save.SaveManager slot names available for this game's 3 save slots
-# (StartState/PauseMenuState's "Cargar partida", PauseMenuState's "Guardar
-# partida" -- see SlotSelectState).
+# (StartState/PauseMenuState's "Load game", PauseMenuState's "Save
+# game" -- see SlotSelectState).
 SAVE_SLOTS = ["slot1", "slot2", "slot3"]
 
 BASE_DIR = pathlib.Path(__file__).parent

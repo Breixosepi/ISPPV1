@@ -5,10 +5,10 @@ Study Case: Ultimate Fantasy (RPG)
 Author: Alejandro Mujica
 alejandro.j.mujic4@gmail.com
 
-This file contains the class StartState: the title screen. A "Nueva
-partida"/"Cargar partida" Menu replaces the original's raw
-Enter/"press C" key prompts -- "Cargar partida" opens the same
-SlotSelectState/stat-card picker "Guardar partida" uses from the pause
+This file contains the class StartState: the title screen. A "New
+game"/"Load game" Menu replaces the original's raw
+Enter/"press C" key prompts -- "Load game" opens the same
+SlotSelectState/stat-card picker "Save game" uses from the pause
 menu (see PauseMenuState), instead of always resuming the single fixed
 save slot the game used to have.
 """
@@ -33,8 +33,8 @@ class StartState(BaseState):
             140,
             48,
             items=[
-                ("Nueva partida", self._start_new_game),
-                ("Cargar partida", self._load_game),
+                ("New game", self._start_new_game),
+                ("Load game", self._load_game),
             ],
             font=settings.FONTS["small"],
         )

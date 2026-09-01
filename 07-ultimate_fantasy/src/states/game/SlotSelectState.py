@@ -6,7 +6,7 @@ Author: Alejandro Mujica
 alejandro.j.mujic4@gmail.com
 
 This file contains the class SlotSelectState: a picker over the 3 cards
-in settings.SAVE_SLOTS, shared by "Guardar partida" and "Cargar partida"
+in settings.SAVE_SLOTS, shared by "Save game" and "Load game"
 (PauseMenuState, StartState). mode="save" lets the player pick (and, if
 occupied, overwrite after confirming) any slot; mode="load" only lets
 them pick a slot that already has a save in it. Each card shows the
@@ -98,7 +98,7 @@ class SlotSelectState(BaseState):
             slot = self._selected_slot()
             self.state_machine.push(
                 ConfirmState(self.state_machine),
-                message=f"¿Sobrescribir la partida guardada en el slot {self.selected_index + 1}?",
+                message=f"Overwrite the save in slot {self.selected_index + 1}?",
                 on_yes=lambda: self.on_select(slot),
                 on_no=lambda: None,
             )
@@ -126,7 +126,7 @@ class SlotSelectState(BaseState):
         surface.blit(overlay, (0, 0))
 
         title_font = settings.FONTS["medium"]
-        title_text = "Guardar partida" if self.mode == "save" else "Cargar partida"
+        title_text = "Save game" if self.mode == "save" else "Load game"
         title = title_font.render(title_text, True, (255, 255, 255))
         title_rect = title.get_rect(center=(settings.VIRTUAL_WIDTH / 2, self.top - 14))
         surface.blit(title, title_rect)
@@ -140,7 +140,7 @@ class SlotSelectState(BaseState):
             if i == self.selected_index:
                 self.cursor.render(surface, (panel.x - 8, panel.y + panel.height / 2))
 
-        hint = small.render("Pausa: cancelar", True, (200, 200, 200))
+        hint = small.render("Pause: cancel", True, (200, 200, 200))
         last_panel = self.panels[-1]
         hint_rect = hint.get_rect(
             center=(settings.VIRTUAL_WIDTH / 2, last_panel.y + last_panel.height + 14)
@@ -168,7 +168,7 @@ class SlotSelectState(BaseState):
         draw_line(f"Slot {index + 1}")
 
         if meta is None:
-            draw_line("Vacío", (150, 150, 150))
+            draw_line("Empty", (150, 150, 150))
             return
 
         extra = meta.extra
@@ -180,6 +180,6 @@ class SlotSelectState(BaseState):
         for line in wrap_text(font, names_text, max_width):
             draw_line(line)
 
-        draw_line(f"Nivel {extra.get('party_level', '?')} - {extra.get('region_label', '?')}")
+        draw_line(f"Level {extra.get('party_level', '?')} - {extra.get('region_label', '?')}")
         date_str = time.strftime("%d/%m/%Y %H:%M", time.localtime(meta.updated_at))
         draw_line(date_str, (200, 200, 200))
