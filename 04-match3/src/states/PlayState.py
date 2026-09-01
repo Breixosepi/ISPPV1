@@ -27,14 +27,6 @@ class PlayState(BaseState):
         self.board = enter_params["board"]
         self.score = enter_params["score"]
 
-        # Position in the grid which we are highlighting
-        self.board_highlight_i1 = -1
-        self.board_highlight_j1 = -1
-        self.board_highlight_i2 = -1
-        self.board_highlight_j2 = -1
-
-        self.highlighted_tile = False
-
         self.dragging = False
         self.drag_tile = None
         self.drag_origin_i = -1
@@ -162,9 +154,9 @@ class PlayState(BaseState):
             )
             surface.blit(hover_rect, (x, y))
 
-        if self.highlighted_tile:
-            x = self.highlighted_j1 * settings.TILE_SIZE + self.board.x
-            y = self.highlighted_i1 * settings.TILE_SIZE + self.board.y
+        if self.dragging:
+            x = self.drag_origin_j * settings.TILE_SIZE + self.board.x
+            y = self.drag_origin_i * settings.TILE_SIZE + self.board.y
             surface.blit(self.tile_alpha_surface, (x, y))
 
         if self.rebuild_pending:
@@ -256,9 +248,6 @@ class PlayState(BaseState):
             self.drag_tile = tile
             self.drag_origin_i = i
             self.drag_origin_j = j
-            self.highlighted_tile = True
-            self.highlighted_i1 = i
-            self.highlighted_j1 = j
             self.drag_target_x = position.x - self.board.x
             self.drag_target_y = position.y - self.board.y
             self.drag_tile.x = self.drag_target_x
@@ -274,14 +263,12 @@ class PlayState(BaseState):
             position = self._mouse_to_virtual(input_data.position)
             target = self._cell_from_mouse(position)
             self.dragging = False
-            self.highlighted_tile = False
             self.hover_i = -1
             self.hover_j = -1
 
             if target == (self.drag_origin_i, self.drag_origin_j):
                 tile = self.board.tiles[self.drag_origin_i][self.drag_origin_j]
                 self._reset_drag_tile()
-                # Modo 1: Activación por clic directo si tiene Power-Up
                 if tile is not None and tile.power_up is not None:
                     matches = self.board.trigger_power_up_at(tile.i, tile.j)
                     if matches is not None:
@@ -297,7 +284,7 @@ class PlayState(BaseState):
             dj = abs(target_j - self.drag_origin_j)
 
             if di <= 1 and dj <= 1 and di != dj:
-                if not self._would_create_match(self.drag_origin_i, self.drag_origin_j, target_i, target_j):
+                if not self.board._swap_creates_match(self.drag_origin_i, self.drag_origin_j, target_i, target_j):
                     self._reset_drag_tile()
                     return
 
@@ -315,21 +302,7 @@ class PlayState(BaseState):
                 tile2.y = tile2.i * settings.TILE_SIZE
 
                 def arrive():
-                    tile1 = self.board.tiles[origin_i][origin_j]
-                    tile2 = self.board.tiles[target_i][target_j]
-                    (
-                        self.board.tiles[tile1.i][tile1.j],
-                        self.board.tiles[tile2.i][tile2.j],
-                    ) = (
-                        self.board.tiles[tile2.i][tile2.j],
-                        self.board.tiles[tile1.i][tile1.j],
-                    )
-                    tile1.i, tile1.j, tile2.i, tile2.j = (
-                        tile2.i,
-                        tile2.j,
-                        tile1.i,
-                        tile1.j,
-                    )
+                    self.board.swap_tiles(origin_i, origin_j, target_i, target_j)
                     self.drag_tile = None
                     self._calculate_matches([tile1, tile2])
 
@@ -379,23 +352,6 @@ class PlayState(BaseState):
         self.hover_i = -1
         self.hover_j = -1
 
-    def _would_create_match(self, i1: int, j1: int, i2: int, j2: int) -> bool:
-        tile1 = self.board.tiles[i1][j1]
-        tile2 = self.board.tiles[i2][j2]
-
-        self.board.tiles[i1][j1] = tile2
-        self.board.tiles[i2][j2] = tile1
-        tile1.i, tile1.j, tile2.i, tile2.j = i2, j2, i1, j1
-
-        matches = self.board.calculate_matches_for([tile1, tile2])
-        self.board.matches = []
-
-        self.board.tiles[i1][j1] = tile1
-        self.board.tiles[i2][j2] = tile2
-        tile1.i, tile1.j = i1, j1
-        tile2.i, tile2.j = i2, j2
-
-        return matches is not None
 
     def _is_valid_drag_target(self, i: int, j: int) -> bool:
         if self.drag_tile is None:
@@ -406,7 +362,7 @@ class PlayState(BaseState):
         if di > 1 or dj > 1 or di == dj:
             return False
 
-        return self._would_create_match(self.drag_origin_i, self.drag_origin_j, i, j)
+        return self.board._swap_creates_match(self.drag_origin_i, self.drag_origin_j, i, j)
 
     def _update_hint(self, dt: float) -> None:
         if self.dragging or self.rebuild_pending or not self.active:

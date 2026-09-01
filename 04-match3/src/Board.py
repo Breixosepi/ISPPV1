@@ -100,22 +100,14 @@ class Board:
     def _swap_creates_match(self, i1: int, j1: int, i2: int, j2: int) -> bool:
         if abs(i1 - i2) + abs(j1 - j2) != 1:
             return False
-
-        tile1 = self.tiles[i1][j1]
-        tile2 = self.tiles[i2][j2]
-
-        self.tiles[i1][j1] = tile2
-        self.tiles[i2][j2] = tile1
-        tile1.i, tile1.j, tile2.i, tile2.j = i2, j2, i1, j1
-
+        
+        self.swap_tiles(i1, j1, i2, j2) 
+        tile1 = self.tiles[i2][j2]
+        tile2 = self.tiles[i1][j1]
         matches = self.calculate_matches_for([tile1, tile2])
         self.matches = []
-
-        self.tiles[i1][j1] = tile1
-        self.tiles[i2][j2] = tile2
-        tile1.i, tile1.j = i1, j1
-        tile2.i, tile2.j = i2, j2
-
+        self.swap_tiles(i1, j1, i2, j2) 
+        
         return matches is not None
     
     def trigger_power_up_at(self, i: int, j: int) -> Optional[List[List[Tile]]]:
@@ -375,3 +367,13 @@ class Board:
                 alive_particles.append(item)
 
         self.particle_systems = alive_particles
+
+    def swap_tiles(self, i1: int, j1: int, i2: int, j2: int) -> None:
+        tile1 = self.tiles[i1][j1]
+        tile2 = self.tiles[i2][j2]
+        self.tiles[i1][j1] = tile2
+        self.tiles[i2][j2] = tile1
+        if tile1 is not None:
+            tile1.i, tile1.j = i2, j2
+        if tile2 is not None:
+            tile2.i, tile2.j = i1, j1
