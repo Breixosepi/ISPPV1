@@ -9,7 +9,7 @@ This file contains the class PlayState.
 """
 
 import math
-from typing import Dict, Any, List
+from typing import Dict, Any, List, Optional, Tuple
 
 import pygame
 
@@ -49,12 +49,13 @@ class PlayState(BaseState):
         self.rebuild_elapsed = 0.0
         self.rebuild_duration = 0.5
         self.timer_paused = False
+        self.last_move_target: Optional[Tuple[int,int]]= None
 
         self.active = True
 
         self.timer = settings.LEVEL_TIME
 
-        self.goal_score = self.level * 1.25 * 1000
+        self.goal_score = self.level * 1.75 * 1000
 
         # A surface that supports alpha to highlight a selected tile
         self.tile_alpha_surface = pygame.Surface(
@@ -86,17 +87,20 @@ class PlayState(BaseState):
         Timer.every(1, decrement_timer)
 
     def update(self, dt: float) -> None:
+        self.board.update(dt)
+
         if self.rebuild_pending:
             self.rebuild_elapsed += dt
             if self.rebuild_elapsed >= self.rebuild_duration:
                 tweens = self.board.recreate_board()
                 self.rebuild_pending = False
                 self.rebuild_elapsed = 0.0
-                self.timer_paused = False
-                self.active = True
-                self.hint_move = None
-                self.hint_elapsed = 0.0
-                Timer.tween(0.4, tweens, on_finish=lambda: None)
+                def on_recreated_finish():
+                    self.timer_paused = False
+                    self.active = True
+                    self.hint_move = None
+                    self.hint_elapsed = 0.0
+                Timer.tween(0.4, tweens, on_finish=on_recreated_finish)
             return
 
         if self.dragging and self.drag_tile is not None:
@@ -109,11 +113,6 @@ class PlayState(BaseState):
             Timer.clear()
             settings.SOUNDS["game-over"].play()
             self.state_machine.change("game-over", score=self.score)
-
-        if self.score >= self.goal_score:
-            Timer.clear()
-            settings.SOUNDS["next-level"].play()
-            self.state_machine.change("begin", level=self.level + 1, score=self.score)
 
     def render(self, surface: pygame.Surface) -> None:
         self.board.render(surface)
@@ -279,6 +278,16 @@ class PlayState(BaseState):
             self.hover_i = -1
             self.hover_j = -1
 
+            if target == (self.drag_origin_i, self.drag_origin_j):
+                tile = self.board.tiles[self.drag_origin_i][self.drag_origin_j]
+                self._reset_drag_tile()
+                # Modo 1: Activación por clic directo si tiene Power-Up
+                if tile is not None and tile.power_up is not None:
+                    matches = self.board.trigger_power_up_at(tile.i, tile.j)
+                    if matches is not None:
+                        self.active = False
+                        self._process_matches(matches)
+
             if target is None:
                 self._reset_drag_tile()
                 return
@@ -295,6 +304,8 @@ class PlayState(BaseState):
                 self.active = False
                 origin_i = self.drag_origin_i
                 origin_j = self.drag_origin_j
+                self.last_move_target = (target_i, target_j)
+
                 tile1 = self.board.tiles[origin_i][origin_j]
                 tile2 = self.board.tiles[target_i][target_j]
 
@@ -419,34 +430,66 @@ class PlayState(BaseState):
         self.hint_move = None
         self.hint_elapsed = 0.0
 
+    def _process_matches(self, matches: List[List]) -> None:
+        settings.SOUNDS["match"].stop()
+        settings.SOUNDS["match"].play()
+
+        has_booster = any(
+            tile.power_up is not None
+            for match in matches
+            for tile in match
+        )
+
+        if has_booster:
+            self.timer_paused = True
+
+        tiles_to_destroy = set()
+        for match in matches:
+            for tile in match:
+                tiles_to_destroy.add(tile)
+
+        self.score += len(tiles_to_destroy) * 50
+
+        self.hint_move = None
+        self.hint_elapsed = 0.0
+
+        self.board.remove_matches(target_position=self.last_move_target)
+        self.last_move_target = None
+
+        def start_falling():
+            falling_tiles = self.board.get_falling_tiles()
+
+            Timer.tween(
+                0.25,
+                falling_tiles,
+                on_finish=lambda: self._calculate_matches(
+                    [item[0] for item in falling_tiles]
+                ),
+            )
+        if has_booster:
+            Timer.after(1.0, start_falling)
+        else:
+            start_falling()    
+
+
     def _calculate_matches(self, tiles: List) -> None:
         matches = self.board.calculate_matches_for(tiles)
 
         if matches is None:
             self.hint_move = None
             self.hint_elapsed = 0.0
+
+            if self.score >= self.goal_score:
+                Timer.clear()
+                settings.SOUNDS["next-level"].play()
+                self.state_machine.change("begin", level=self.level + 1, score=self.score)
+                return
+
+            self.timer_paused = False
+            
             if not self.board.has_valid_move():
                 self._start_rebuild()
             else:
                 self.active = True
             return
-
-        settings.SOUNDS["match"].stop()
-        settings.SOUNDS["match"].play()
-
-        for match in matches:
-            self.score += len(match) * 50
-
-        self.hint_move = None
-        self.hint_elapsed = 0.0
-        self.board.remove_matches()
-
-        falling_tiles = self.board.get_falling_tiles()
-
-        Timer.tween(
-            0.25,
-            falling_tiles,
-            on_finish=lambda: self._calculate_matches(
-                [item[0] for item in falling_tiles]
-            ),
-        )
+        self._process_matches(matches)
