@@ -280,13 +280,8 @@ class PlayState(BaseState):
                 return
 
             target_i, target_j = target
-            di = abs(target_i - self.drag_origin_i)
-            dj = abs(target_j - self.drag_origin_j)
 
-            if di <= 1 and dj <= 1 and di != dj:
-                if not self.board._swap_creates_match(self.drag_origin_i, self.drag_origin_j, target_i, target_j):
-                    self._reset_drag_tile()
-                    return
+            if self.board._swap_creates_match(self.drag_origin_i, self.drag_origin_j, target_i, target_j):
 
                 self.active = False
                 origin_i = self.drag_origin_i
@@ -356,12 +351,6 @@ class PlayState(BaseState):
     def _is_valid_drag_target(self, i: int, j: int) -> bool:
         if self.drag_tile is None:
             return False
-
-        di = abs(i - self.drag_origin_i)
-        dj = abs(j - self.drag_origin_j)
-        if di > 1 or dj > 1 or di == dj:
-            return False
-
         return self.board._swap_creates_match(self.drag_origin_i, self.drag_origin_j, i, j)
 
     def _update_hint(self, dt: float) -> None:

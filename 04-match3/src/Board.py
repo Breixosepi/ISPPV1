@@ -27,7 +27,10 @@ class Board:
         self.matches: List[List[Tile]] = []
         self.tiles: List[List[Tile]] = []
         self.particle_systems = []
+        self.in_match: Set[Tile] = set()
+        self.in_stack: Set[Tile] = set()
         self._initialize_tiles()
+
 
     def render(self, surface: pygame.Surface) -> None:
         for row in self.tiles:
@@ -143,11 +146,10 @@ class Board:
                 if t is not None and t not in visited_pu:
                     self._expand_power_ups_rec(t, current_match, visited_pu)
 
-    def calculate_matches_for(
-        self, new_tiles: List[Tile]
-    ) -> Optional[List[List[Tile]]]:
-        self.in_match: Set[Tile] = set()
-        self.in_stack: Set[Tile] = set()
+    def calculate_matches_for(self, new_tiles: List[Tile]) -> Optional[List[List[Tile]]]:
+
+        self.in_match.clear() 
+        self.in_stack.clear()
 
         for tile in new_tiles:
             if tile is None or tile in self.in_match:
@@ -155,9 +157,6 @@ class Board:
             match = list(self._calculate_match_rec(tile))
             if len(match) > 0:
                 self.matches.append(match)
-
-        delattr(self, "in_match")
-        delattr(self, "in_stack")
 
         return self.matches if len(self.matches) > 0 else None
 
@@ -243,7 +242,7 @@ class Board:
     def remove_matches(self, target_position: Optional[Tuple[int, int]] = None) -> None:
         new_power_up_info = None
         for match in self.matches:
-            match_list = list(match) if isinstance(match, (set, tuple)) else match
+            match_list = match
             
             has_existing_booster = False
             booster_kind = None
@@ -287,7 +286,7 @@ class Board:
             self.tiles[i][j] = tile
 
     def get_falling_tiles(self) -> Tuple[Any, Dict[str, Any]]:
-        tweens: Tuple[Tile, Dict[str, Any]] = []
+        tweens: List[Tuple[Tile, Dict[str, Any]]] = []
 
         for j in range(settings.BOARD_WIDTH):
             space = False
@@ -363,10 +362,8 @@ class Board:
 
         for item in self.particle_systems:
             item["ps"].update(dt)
-            if item["state"]["active"]:
-                alive_particles.append(item)
 
-        self.particle_systems = alive_particles
+        self.particle_systems = [item for item in self.particle_systems if item["state"]["active"]]
 
     def swap_tiles(self, i1: int, j1: int, i2: int, j2: int) -> None:
         tile1 = self.tiles[i1][j1]
