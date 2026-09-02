@@ -19,9 +19,18 @@ class WalkState(BaseEntityState):
         self.entity.change_animation("walk")
 
     def update(self, dt: float) -> None:
+        if (self.entity.move_up_requested or self.entity.is_looking_down) and self.entity.is_on_ladder():
+            self.entity.change_state("climb")
+            return
+        
         if self.entity.jump_requested:
             self.entity.jump_requested = False
-            self.entity.change_state("jump")
+
+            if self.entity.is_looking_down:
+                self.entity.y += 2
+                self.entity.change_state("fall")
+            else:
+                self.entity.change_state("jump")
             return
 
         if not self.entity.on_ground:

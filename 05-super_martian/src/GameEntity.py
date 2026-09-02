@@ -40,6 +40,8 @@ class GameEntity(mixins.DrawableMixin, mixins.AnimatedMixin, mixins.CollidableMi
         self.move_direction: int = 0
         self.jump_requested: bool = False
         self.jump_held: bool = False
+        self.is_looking_down: bool = False
+        self.move_up_requested: bool = False
         self.texture_id = texture_id
         self.frame_index = -1
         self.game_level = game_level
@@ -62,7 +64,8 @@ class GameEntity(mixins.DrawableMixin, mixins.AnimatedMixin, mixins.CollidableMi
         # Applied unconditionally (not just while jumping/falling) so the
         # vertical move below is never a no-op dy=0 call, which would skip
         # move_and_collide's y-axis check and leave on_ground stale.
-        self.vy += settings.GRAVITY * dt
+        if self.state_machine.current.__class__.__name__ != "ClimbState":
+            self.vy += settings.GRAVITY * dt
 
         self.state_machine.update(dt)
         mixins.AnimatedMixin.update(self, dt)

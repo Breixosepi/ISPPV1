@@ -18,9 +18,13 @@ from src.commands import (
     JUMP,
     MOVE_LEFT,
     MOVE_RIGHT,
+    MOVE_DOWN,
+    MOVE_UP,
     STOP_JUMP,
     STOP_MOVE_LEFT,
     STOP_MOVE_RIGHT,
+    STOP_MOVE_DOWN,
+    STOP_MOVE_UP,
 )
 from src.states.entities import player_states
 
@@ -40,11 +44,13 @@ class Player(GameEntity):
                 "jump": lambda sm: player_states.JumpState(self, sm),
                 "fall": lambda sm: player_states.FallState(self, sm),
                 "dead": lambda sm: player_states.DeadState(self, sm),
+                "climb": lambda sm: player_states.ClimbState(self, sm),
             },
             animation_defs={
                 "idle": {"frames": [0]},
                 "walk": {"frames": [9, 10], "interval": 0.15},
                 "jump": {"frames": [2]},
+                "climb": {"frames": [5, 6], "interval": 0.15},
             },
         )
         self.score = 0
@@ -55,7 +61,19 @@ class Player(GameEntity):
         self.command_bindings.bind(
             "move_right", press=MOVE_RIGHT, release=STOP_MOVE_RIGHT
         )
+        self.command_bindings.bind("move_down", press=MOVE_DOWN, release=STOP_MOVE_DOWN)
+        self.command_bindings.bind("move_up", press=MOVE_UP, release=STOP_MOVE_UP)
         self.command_bindings.bind("jump", press=JUMP, release=STOP_JUMP)
+
+    def is_on_ladder(self) -> bool:
+        col = int((self.x + self.width / 2) // self.tilemap.tile_width)
+        row = int((self.y + self.height / 2) // self.tilemap.tile_height)
+        
+        try:
+            gid = self.tilemap.get_gid("ladders", row, col)
+            return gid > 0
+        except Exception:
+            return False
 
     def on_input(self, input_id: str, input_data: InputData) -> None:
         self.command_bindings.dispatch(self, input_id, input_data)
