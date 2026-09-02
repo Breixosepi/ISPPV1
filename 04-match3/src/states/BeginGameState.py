@@ -24,7 +24,7 @@ class BeginGameState(BaseState):
     def enter(self, **enter_params: Dict[str, Any]) -> None:
         self.transition_alpha = 255
         self.board = Board(settings.VIRTUAL_WIDTH - 272, 16)
-        if not self.board.has_valid_move():
+        while not self.board.has_valid_move():
             self.board.recreate_board()
         self.level_label_y = -64
         self.level = enter_params.get("level", 1)
@@ -75,9 +75,11 @@ class BeginGameState(BaseState):
         )
 
         # our transition foregorund rectangle
-        pygame.draw.rect(
-            self.screen_alpha_surface,
-            (255, 255, 255, self.transition_alpha),
-            pygame.Rect(0, 0, settings.VIRTUAL_WIDTH, settings.VIRTUAL_HEIGHT),
-        )
+        if self.transition_alpha > 0:
+            self.screen_alpha_surface.fill((0,0,0,0))
+            pygame.draw.rect(
+                self.screen_alpha_surface,
+                (255, 255, 255, self.transition_alpha),
+                pygame.Rect(0, 0, settings.VIRTUAL_WIDTH, settings.VIRTUAL_HEIGHT),
+            )
         surface.blit(self.screen_alpha_surface, (0, 0))
