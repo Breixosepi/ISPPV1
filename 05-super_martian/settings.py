@@ -47,6 +47,11 @@ CLIMB_SPEED = 90
 
 GRAVITY = 980
 
+TARGET_SCORES = {
+    1: 100,
+    2: 800,
+}
+
 # Variable-height jump: the takeoff speed is always the same (full arc if
 # held), but releasing "jump" early while still ascending clamps vy up to
 # JUMP_CUT_VELOCITY (a smaller upward speed), so the arc peaks sooner and
@@ -63,6 +68,11 @@ FLYING_CREATURE_MIN_SPAWN_DELAY = 4
 FLYING_CREATURE_MAX_SPAWN_DELAY = 9
 
 NUM_LEVELS = 2
+
+KEY_BLOCK_GID = 18
+KEY_BLOCK_USED_GID = 77
+KEY_FRAME_INDEX = 146
+LEVEL_TRANSITION_TIME = 2.0
 
 BASE_DIR = pathlib.Path(__file__).parent
 
@@ -92,6 +102,9 @@ SOUNDS = {
     "jump": pygame.mixer.Sound(BASE_DIR / "assets" / "sounds" / "jump.wav"),
     "timer": pygame.mixer.Sound(BASE_DIR / "assets" / "sounds" / "timer.wav"),
     "count": pygame.mixer.Sound(BASE_DIR / "assets" / "sounds" / "count.wav"),
+    "level_complete": pygame.mixer.Sound(
+        BASE_DIR / "assets" / "sounds" / "pickup_coin.wav"
+    ),
 }
 
 SOUNDS["pickup_coin"].set_volume(0.5)

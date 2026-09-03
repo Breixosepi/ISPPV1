@@ -22,11 +22,7 @@ class ClimbState(BaseEntityState):
             vy += self.CLIMB_SPEED
 
         self.entity.vy = vy
-
-        if vy != 0:
-            self.entity.change_animation("climb")
-        else:
-            self.entity.change_animation("climb")
+        self.entity.change_animation("climb")
 
         if not self.entity.is_on_ladder():
             if self.entity.on_ground:

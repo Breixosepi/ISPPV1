@@ -37,6 +37,7 @@ class IdleState(BaseEntityState):
 
         if self.entity.move_direction != 0:
             self.entity.change_state("walk")
+            return
 
         if self.entity.is_looking_down:
             self.entity.change_animation("crouch")

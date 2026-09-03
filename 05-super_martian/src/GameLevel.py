@@ -26,9 +26,15 @@ from src.definitions import creatures, items
 
 class GameLevel:
     def __init__(self, num_level: int) -> None:
+        self.num_level = num_level
         self.tilemap = load_tiled_map(settings.TILEMAPS[num_level])
         self.creatures = []
         self.items = []
+        self.key_block_pos = None
+        self.key_block_active = False
+        self.key_spawned = False
+        self.key_item: Optional[GameItem] = None
+        self.coins_disabled = False
 
         for obj in self.tilemap.object_layers.get("creatures", []):
             self.add_creature(
@@ -53,6 +59,10 @@ class GameLevel:
                 }
             )
 
+        for obj in self.tilemap.object_layers.get("special", []):
+            if obj.name == "key_block":
+                self.key_block_pos = (obj.x, obj.y)
+
         self._schedule_flying_creature_spawn()
 
     def add_item(self, item_data: Dict[str, Any]) -> None:
@@ -74,6 +84,38 @@ class GameLevel:
             )
         )
 
+    def spawn_key(self) -> None:
+        """Spawn the key at the block position with a tween animation upward."""
+        if self.key_block_pos is None or self.key_spawned:
+            return
+
+        self.key_spawned = True
+        bx, by = self.key_block_pos
+
+        key_frame = settings.KEY_FRAME_INDEX
+
+        key_def = items.ITEMS["key"][key_frame].copy()
+        key_def.update(
+            {
+                "x": bx,
+                "y": by,
+                "width": 16,
+                "height": 16,
+                "frame_index": key_frame,
+            }
+        )
+        
+        self.key_item = GameItem(**key_def)
+        self.key_item.active = True
+        self.items.append(self.key_item)
+
+        # Animate the key rising from the block (20px upward over 0.5s)
+        Timer.tween(
+            0.5,
+            [(self.key_item, {"y": by - 20})],
+            on_finish=lambda: None,
+        )
+
     def _schedule_flying_creature_spawn(self) -> None:
         delay = random.uniform(
             settings.FLYING_CREATURE_MIN_SPAWN_DELAY,
@@ -90,7 +132,7 @@ class GameLevel:
         row at all to spawn in.
         """
         first_solid_row = self.tilemap.rows
-
+        
         for row in range(self.tilemap.rows):
             if (
                 collision_type_at(self.tilemap, GameEntity.COLLISION_LAYER, row, col)

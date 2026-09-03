@@ -45,6 +45,13 @@ def pickup_yellow_coin(coin: GameItem, player: Player):
     pickup_coin(coin, player, 50, 54, random.uniform(20, 25))
 
 
+def pickup_key(key: GameItem, player: Player):
+    """Picking up the key marks the level as completed."""
+    settings.SOUNDS["level_complete"].stop()
+    settings.SOUNDS["level_complete"].play()
+    player.has_key = True
+
+
 ITEMS: Dict[str, Dict[int, Dict[str, Any]]] = {
     "coins": {
         62: {
@@ -71,5 +78,13 @@ ITEMS: Dict[str, Dict[int, Dict[str, Any]]] = {
             "collidable": True,
             "on_consume": pickup_yellow_coin,
         },
-    }
+    },
+    "key": {
+        settings.KEY_FRAME_INDEX: {
+            "texture_id": "dungeon_tiles",
+            "consumable": True,
+            "collidable": True,
+            "on_consume": pickup_key,
+        },
+    },
 }
