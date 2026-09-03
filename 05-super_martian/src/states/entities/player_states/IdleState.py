@@ -15,7 +15,10 @@ class IdleState(BaseEntityState):
     def enter(self) -> None:
         self.entity.vx = 0
         self.entity.vy = 0
-        self.entity.change_animation("idle")
+        if self.entity.is_looking_down:
+            self.entity.change_animation("crouch")
+        else:
+            self.entity.change_animation("idle")
 
     def update(self, dt: float) -> None:
 
@@ -34,3 +37,8 @@ class IdleState(BaseEntityState):
 
         if self.entity.move_direction != 0:
             self.entity.change_state("walk")
+
+        if self.entity.is_looking_down:
+            self.entity.change_animation("crouch")
+        else:
+            self.entity.change_animation("idle")

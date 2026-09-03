@@ -51,6 +51,7 @@ class Player(GameEntity):
                 "walk": {"frames": [9, 10], "interval": 0.15},
                 "jump": {"frames": [2]},
                 "climb": {"frames": [5, 6], "interval": 0.15},
+                "crouch": {"frames": [3]},
             },
         )
         self.score = 0
