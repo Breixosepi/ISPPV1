@@ -1,9 +1,9 @@
 """
-ISPPV1 2023
+ISPPV1 2026
 Study Case: Super Martian (Platformer)
 
-Author: Alejandro Mujica
-alejandro.j.mujic4@gmail.com
+Author: Eugenio Montilla
+eugeniorusso1411@gmail.com
 
 This file contains the class Player.
 """
@@ -13,6 +13,7 @@ from typing import TypeVar
 from gale.command import CommandBindings
 from gale.input_handler import InputData
 
+import settings
 from src.GameEntity import GameEntity
 from src.commands import (
     JUMP,
@@ -55,17 +56,17 @@ class Player(GameEntity):
             },
         )
         self.score = 0
-        self.coins_counter = {54: 0, 55: 0, 61: 0, 62: 0}
+        self.coins_counter = {frame: 0 for frame in settings.COIN_FRAMES}
         self.has_key = False
 
         self.command_bindings = CommandBindings()
         self.command_bindings.bind("move_left", press=MOVE_LEFT, release=STOP_MOVE_LEFT)
-        self.command_bindings.bind(
-            "move_right", press=MOVE_RIGHT, release=STOP_MOVE_RIGHT
-        )
+        self.command_bindings.bind("move_right", press=MOVE_RIGHT, release=STOP_MOVE_RIGHT)
         self.command_bindings.bind("move_down", press=MOVE_DOWN, release=STOP_MOVE_DOWN)
         self.command_bindings.bind("move_up", press=MOVE_UP, release=STOP_MOVE_UP)
         self.command_bindings.bind("jump", press=JUMP, release=STOP_JUMP)
+
+        self.change_state("idle")
 
     def is_on_ladder(self) -> bool:
         col = int((self.x + self.width / 2) // self.tilemap.tile_width)

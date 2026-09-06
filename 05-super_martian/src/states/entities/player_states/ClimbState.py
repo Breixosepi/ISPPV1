@@ -1,8 +1,18 @@
+"""
+ISPPV1 2026
+Study Case: Super Martian (Platformer)
+
+Author: Eugenio Montilla
+eugeniorusso1411@gmail.com
+
+This file contains the class ClimbState for player.
+"""
+
 import settings
 from src.states.entities.BaseEntityState import BaseEntityState
 
 class ClimbState(BaseEntityState):
-    CLIMB_SPEED = 90
+    has_gravity: bool = False
 
     def enter(self) -> None:
         self.entity.vx = 0
@@ -17,12 +27,11 @@ class ClimbState(BaseEntityState):
 
         vy = 0
         if self.entity.move_up_requested:
-            vy -= self.CLIMB_SPEED
+            vy -= settings.CLIMB_SPEED
         if self.entity.is_looking_down:
-            vy += self.CLIMB_SPEED
+            vy += settings.CLIMB_SPEED
 
         self.entity.vy = vy
-        self.entity.change_animation("climb")
 
         if not self.entity.is_on_ladder():
             if self.entity.on_ground:
