@@ -1,9 +1,9 @@
 """
-ISPPV1 2023
+ISPPV1 2026
 Study Case: The Legend of the Princess (ARPG)
 
-Author: Alejandro Mujica
-alejandro.j.mujic4@gmail.com
+Author: Eugenio Montilla
+eugeniorusso1411@gmail.com
 
 This file contains move_and_bump: the room-boundary collision every walking
 entity (AI-controlled or player-controlled) uses, shared so it is defined
@@ -58,3 +58,36 @@ def move_and_bump(entity: Any, dt: float) -> bool:
             bumped = True
 
     return bumped
+
+def check_doorways(entity: Any, dungeon: Any, dt: float) -> None:
+    speed = entity.walk_speed
+    room = dungeon.current_room
+
+    if entity.direction == "left":
+        entity.x -= speed * dt
+        for doorway in room.doorways:
+            if doorway.open and entity.collides(doorway):
+                entity.y = doorway.y + 4
+                dungeon.begin_shifting(-settings.VIRTUAL_WIDTH, 0)
+        entity.x += speed * dt
+    elif entity.direction == "right":
+        entity.x += speed * dt
+        for doorway in room.doorways:
+            if doorway.open and entity.collides(doorway):
+                entity.y = doorway.y + 4
+                dungeon.begin_shifting(settings.VIRTUAL_WIDTH, 0)
+        entity.x -= speed * dt
+    elif entity.direction == "up":
+        entity.y -= speed * dt
+        for doorway in room.doorways:
+            if doorway.open and entity.collides(doorway):
+                entity.x = doorway.x + 8
+                dungeon.begin_shifting(0, -settings.VIRTUAL_HEIGHT)
+        entity.y += speed * dt
+    else:
+        entity.y += speed * dt
+        for doorway in room.doorways:
+            if doorway.open and entity.collides(doorway):
+                entity.x = doorway.x + 8
+                dungeon.begin_shifting(0, settings.VIRTUAL_HEIGHT)
+        entity.y -= speed * dt

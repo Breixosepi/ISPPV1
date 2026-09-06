@@ -1,9 +1,9 @@
 """
-ISPPV1 2023
+ISPPV1 2026
 Study Case: The Legend of the Princess (ARPG)
 
-Author: Alejandro Mujica
-alejandro.j.mujic4@gmail.com
+Author: Eugenio Montilla
+eugeniorusso1411@gmail.com
 
 This file contains the class PlayState for the game.
 """
@@ -12,6 +12,7 @@ import pygame
 
 from gale.input_handler import InputData
 from gale.state import BaseState, StateMachine
+from gale.text import render_text
 
 import settings
 from src.definitions.entity import ENTITY_DEFS
@@ -30,12 +31,10 @@ class PlayState(BaseState):
             width=16,
             height=22,
             walk_speed=definition["walk_speed"],
-            # One heart == 2 health.
             health=6,
             animation_defs=definition["animations"],
             states={},
         )
-        # Rendering/collision offset for the spaced sprite.
         self.player.offset_y = 5
 
         self.dungeon = Dungeon(self.player, on_game_over=self._on_game_over)
@@ -43,18 +42,12 @@ class PlayState(BaseState):
         self.player.state_machine.states = {
             "walk": lambda sm: player_states.PlayerWalkState(self.player, sm, self.dungeon),
             "idle": lambda sm: player_states.PlayerIdleState(self.player, sm, self.dungeon),
-            "swing-sword": lambda sm: player_states.PlayerSwingSwordState(
-                self.player, sm, self.dungeon
-            ),
-            "pot-lift": lambda sm: player_states.PlayerPotLiftState(
-                self.player, sm, self.dungeon
-            ),
-            "pot-idle": lambda sm: player_states.PlayerPotIdleState(
-                self.player, sm, self.dungeon
-            ),
-            "pot-walk": lambda sm: player_states.PlayerPotWalkState(
-                self.player, sm, self.dungeon
-            ),
+            "swing-sword": lambda sm: player_states.PlayerSwingSwordState(self.player, sm, self.dungeon),
+            "shoot-bow": lambda sm: player_states.PlayerShootBowState(self.player, sm, self.dungeon),
+            "dance": lambda sm: player_states.PlayerDanceState(self.player, sm, self.dungeon),
+            "pot-lift": lambda sm: player_states.PlayerPotLiftState(self.player, sm, self.dungeon),
+            "pot-idle": lambda sm: player_states.PlayerPotIdleState(self.player, sm, self.dungeon),
+            "pot-walk": lambda sm: player_states.PlayerPotWalkState(self.player, sm, self.dungeon),
         }
         self.player.change_state("idle")
 
@@ -73,7 +66,6 @@ class PlayState(BaseState):
     def render(self, surface: pygame.Surface) -> None:
         self.dungeon.render(surface)
 
-        # Draw player hearts, top of screen.
         health_left = self.player.health
         heart_frame = 1
 
@@ -92,6 +84,18 @@ class PlayState(BaseState):
             )
 
             health_left -= 2
+        if self.dungeon.current_room.is_boss_room and self.dungeon.current_room._boss:
+            boss = self.dungeon.current_room._boss
+            if boss and not boss.dead:
+                render_text(
+                    surface,
+                    f"BOSS HP: {boss.health}",
+                    settings.FONTS["princess-small"],
+                    settings.VIRTUAL_WIDTH / 2,
+                    8,
+                    settings.COLOR_TITLE,
+                    center=True,
+                )
 
     def on_input(self, input_id: str, input_data: InputData) -> None:
         self.player.on_input(input_id, input_data)

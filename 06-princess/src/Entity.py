@@ -1,9 +1,9 @@
 """
-ISPPV1 2023
+ISPPV1 2026
 Study Case: The Legend of the Princess (ARPG)
 
-Author: Alejandro Mujica
-alejandro.j.mujic4@gmail.com
+Author: Eugenio Montilla
+eugeniorusso1411@gmail.com
 
 This file contains the class Entity.
 """
@@ -31,13 +31,8 @@ class Entity:
         animation_defs: Dict[str, Dict[str, Any]],
         states: Dict[str, Any],
     ) -> None:
-        # In top-down games, there are four directions instead of two.
         self.direction = "down"
 
-        # Movement intent, updated by MOVE_*/STOP_MOVE_* Commands -- from
-        # InputHandler for the player, from process_ai for AI-controlled
-        # entities -- and resolved into self.direction/movement by each
-        # entity's own walk state, every frame.
         self.held = {
             "move_left": False,
             "move_right": False,
@@ -50,14 +45,12 @@ class Entity:
         self.width = width
         self.height = height
 
-        # Drawing offsets for padded sprites.
         self.offset_x = 0
         self.offset_y = 0
 
         self.walk_speed = walk_speed
         self.health = health
 
-        # Flags for flashing the entity when hit.
         self.invulnerable = False
         self.invulnerable_duration = 0.0
         self.invulnerable_timer = 0.0
@@ -65,19 +58,12 @@ class Entity:
 
         self.dead = False
 
-        # Tracks whether the entity has dropped items or not.
         self.dropped = False
 
         self.current_animation = None
         self.animations = self._create_animations(animation_defs)
         self.state_machine = StateMachine(states)
 
-        # When set (screen-space, same coordinates as x/y at render time),
-        # render_sprite only shows the part of the sprite that falls
-        # inside this rect and clips the rest -- used to let the player
-        # visually pass through a doorway opening without popping through
-        # the solid wall around it. None (the default, for every entity
-        # that never crosses a doorway) skips the stencil entirely.
         self.visibility_clip_rect: Optional[pygame.Rect] = None
 
     def _create_animations(
@@ -180,8 +166,6 @@ class Entity:
         adjacent_offset_x: float = 0,
         adjacent_offset_y: float = 0,
     ) -> None:
-        # Temporarily shift by the room-transition slide offset; reverted
-        # right after so it never leaks into collision/update logic.
         self.x, self.y = self.x + adjacent_offset_x, self.y + adjacent_offset_y
         self.state_machine.render(surface)
         self.x, self.y = self.x - adjacent_offset_x, self.y - adjacent_offset_y

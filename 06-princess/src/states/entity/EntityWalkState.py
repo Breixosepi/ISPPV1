@@ -1,9 +1,9 @@
 """
-ISPPV1 2023
+ISPPV1 2026
 Study Case: The Legend of the Princess (ARPG)
 
-Author: Alejandro Mujica
-alejandro.j.mujic4@gmail.com
+Author: Eugenio Montilla
+eugeniorusso1411@gmail.com
 
 This file contains the class EntityWalkState.
 """
@@ -19,8 +19,6 @@ from src.states.entity.movement import move_and_bump
 
 _DIRECTIONS = ["left", "right", "up", "down"]
 
-# The same Command instances Player binds to InputHandler -- executed
-# directly from process_ai instead of through a press/release event.
 _MOVE_COMMANDS = {
     "left": commands.MOVE_LEFT,
     "right": commands.MOVE_RIGHT,
@@ -39,11 +37,9 @@ class EntityWalkState(BaseEntityState):
     def enter(self) -> None:
         self.entity.change_animation("walk-down")
 
-        # Used for AI control.
         self.move_duration = 0
         self.movement_timer = 0
 
-        # Keeps track of whether we just hit a wall.
         self.bumped = False
 
     def update(self, dt: float) -> None:
@@ -62,8 +58,6 @@ class EntityWalkState(BaseEntityState):
         self.bumped = move_and_bump(entity, dt)
 
     def _pick_direction(self) -> None:
-        # Only one direction is ever held at a time -- release the other
-        # three before pressing the new one, the same way a player would.
         for stop in _STOP_COMMANDS:
             stop.execute(self.entity)
 

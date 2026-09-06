@@ -1,9 +1,9 @@
 """
-ISPPV1 2023
+ISPPV1 2026
 Study Case: The Legend of the Princess (ARPG)
 
-Author: Alejandro Mujica
-alejandro.j.mujic4@gmail.com
+Author: Eugenio Montilla
+eugeniorusso1411@gmail.com
 
 This file contains the class GameObject.
 """
@@ -21,7 +21,6 @@ class GameObject:
         self.texture_id = definition["texture"]
         self.frame_index = definition.get("frame", 1)
 
-        # Whether it acts as an obstacle or not.
         self.solid = definition["solid"]
 
         self.default_state = definition["default_state"]
@@ -35,11 +34,9 @@ class GameObject:
 
         self.on_collide = definition.get("on_collide") or (lambda: None)
 
-        # Whether this object is consumable or not.
         self.consumable = definition.get("consumable", False)
         self.on_consume = definition.get("on_consume") or (lambda player, obj: None)
 
-        # An object could be taken or not.
         self.takeable = definition.get("takeable", False)
         self.taken = False
 
