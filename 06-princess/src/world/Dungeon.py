@@ -44,10 +44,6 @@ class Dungeon:
 
 
     def _should_spawn_chest(self) -> bool:
-        """
-        Reglas:
-          3. En caso contrario lanzamos la probabilidad (_CHEST_SPAWN_CHANCE).
-        """
         if self.player.has_bow:
             return False
         if self._chest_pending:
@@ -55,8 +51,6 @@ class Dungeon:
         return random.randint(1, _CHEST_SPAWN_CHANCE) == 1
 
     def _update_chest_state(self) -> None:
-        """
-        """
         if self.player.has_bow:
             self._chest_pending = False
             return

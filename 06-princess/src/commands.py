@@ -72,7 +72,6 @@ class InteractCommand(Command):
 
 
 class BowCommand(Command):
-    """Solicita disparar una flecha (solo tiene efecto si player.has_bow es True)."""
     def execute(self, receiver, dt: float = 0.0) -> None:
         receiver.bow_requested = True
 
