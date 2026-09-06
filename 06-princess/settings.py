@@ -1,9 +1,9 @@
 """
-ISPPV1 2023
+ISPPV1 2026
 Study Case: The Legend of the Princess (ARPG)
 
-Author: Alejandro Mujica
-alejandro.j.mujic4@gmail.com
+Author: Eugenio Montilla
+eugeniorusso1411@gmail.com
 
 This file contains the game settings that include the association of the
 inputs with an their ids, constants of values to set up the game, sounds,
@@ -26,6 +26,8 @@ input_handler.InputHandler.set_keyboard_action(input_handler.KEY_DOWN, "move_dow
 input_handler.InputHandler.set_keyboard_action(input_handler.KEY_SPACE, "sword")
 input_handler.InputHandler.set_keyboard_action(input_handler.KEY_RETURN, "enter")
 input_handler.InputHandler.set_keyboard_action(input_handler.KEY_KP_ENTER, "enter")
+input_handler.InputHandler.set_keyboard_action(input_handler.KEY_z, "bow")
+input_handler.InputHandler.set_keyboard_action(input_handler.KEY_c, "dance")
 
 TITLE = "The Legend of the Princess"
 
@@ -39,9 +41,6 @@ WINDOW_HEIGHT = 720
 
 TILE_SIZE = 16
 
-#
-# map constants
-#
 MAP_WIDTH = VIRTUAL_WIDTH // TILE_SIZE - 2
 MAP_HEIGHT = VIRTUAL_HEIGHT // TILE_SIZE - 2
 
@@ -55,6 +54,23 @@ TILE_TOP_LEFT_CORNER = 4
 TILE_TOP_RIGHT_CORNER = 5
 TILE_BOTTOM_LEFT_CORNER = 23
 TILE_BOTTOM_RIGHT_CORNER = 24
+
+FIREBALL_SPEED  = 70
+FIREBALL_SIZE   = 16
+FIREBALL_FRAMES = 4
+FIREBALL_FPS    = 8.0
+
+ARROW_WIDTH  = 16
+ARROW_HEIGHT = 16
+ARROW_SPEED  = 220
+
+ARROW_ROTATION = {
+    "right": 0,
+    "up":    90,
+    "left":  180,
+    "down":  270,
+}
+
 
 TILE_EMPTY = 19
 
@@ -74,38 +90,39 @@ TILE_RIGHT_WALLS = [78, 97, 116]
 TEXTURES = {
     "tiles": pygame.image.load(BASE_DIR / "assets" / "graphics" / "tilesheet.png"),
     "background": pygame.image.load(BASE_DIR / "assets" / "graphics" / "background.png"),
-    "character-walk": pygame.image.load(
-        BASE_DIR / "assets" / "graphics" / "character_walk.png"
-    ),
-    "character-swing-sword": pygame.image.load(
-        BASE_DIR / "assets" / "graphics" / "character_swing_sword.png"
-    ),
+    "character-walk": pygame.image.load(BASE_DIR / "assets" / "graphics" / "character_walk.png"),
+    "character-swing-sword": pygame.image.load(BASE_DIR / "assets" / "graphics" / "character_swing_sword.png"),
     "hearts": pygame.image.load(BASE_DIR / "assets" / "graphics" / "hearts.png"),
     "switches": pygame.image.load(BASE_DIR / "assets" / "graphics" / "switches.png"),
     "entities": pygame.image.load(BASE_DIR / "assets" / "graphics" / "entities.png"),
-    "character-pot-lift": pygame.image.load(
-        BASE_DIR / "assets" / "graphics" / "character_pot_lift.png"
-    ),
-    "character-pot-walk": pygame.image.load(
-        BASE_DIR / "assets" / "graphics" / "character_pot_walk.png"
-    ),
+    "character-pot-lift": pygame.image.load(BASE_DIR / "assets" / "graphics" / "character_pot_lift.png"),
+    "character-pot-walk": pygame.image.load( BASE_DIR / "assets" / "graphics" / "character_pot_walk.png"),
+    "chest":    pygame.image.load(BASE_DIR / "assets" / "graphics" / "chest.png"),
+    "arrow":    pygame.image.load(BASE_DIR / "assets" / "graphics" / "arrow.png"),
+    "bow":      pygame.image.load(BASE_DIR / "assets" / "graphics" / "bow.png"),
+    "fireball": pygame.image.load(BASE_DIR / "assets" / "graphics" / "fireball.png"),
+    "character-bow": pygame.image.load(BASE_DIR / "assets" / "graphics" / "character_bow.png"),
 }
+_boss_img = pygame.image.load(BASE_DIR / "assets" / "graphics" / "boss.png")
+TEXTURES["boss"] = pygame.transform.scale(_boss_img, (_boss_img.get_width() * 2, _boss_img.get_height() * 2))
 
-# Used by Room's gale.tilemap.TileMap: TILE_* ids above are 1-based,
-# matching this tileset's default first_gid, so they double as gids.
 TILESET = tilemap.Tileset(TEXTURES["tiles"], TILE_SIZE, TILE_SIZE)
 
 FRAMES = {
     "tiles": frames.generate_frames(TEXTURES["tiles"], 16, 16),
     "character-walk": frames.generate_frames(TEXTURES["character-walk"], 16, 32),
-    "character-swing-sword": frames.generate_frames(
-        TEXTURES["character-swing-sword"], 32, 32
-    ),
+    "character-swing-sword": frames.generate_frames(TEXTURES["character-swing-sword"], 32, 32),
+    "character-bow": frames.generate_frames(TEXTURES["character-bow"], 32, 32),
     "hearts": frames.generate_frames(TEXTURES["hearts"], 16, 16),
     "switches": frames.generate_frames(TEXTURES["switches"], 16, 18),
     "entities": frames.generate_frames(TEXTURES["entities"], 16, 16),
     "character-pot-lift": frames.generate_frames(TEXTURES["character-pot-lift"], 16, 32),
     "character-pot-walk": frames.generate_frames(TEXTURES["character-pot-walk"], 16, 32),
+    "chest":    frames.generate_frames(TEXTURES["chest"],    16, 16),
+    "arrow":    frames.generate_frames(TEXTURES["arrow"],    16, 16),
+    "bow":      frames.generate_frames(TEXTURES["bow"],      16, 16),
+    "fireball": frames.generate_frames(TEXTURES["fireball"], 16, 16),
+    "boss":     frames.generate_frames(TEXTURES["boss"],     64, 72),
 }
 
 
@@ -121,9 +138,8 @@ def frame(texture_id, one_based_index):
 
 FONTS = {
     "princess": pygame.font.Font(BASE_DIR / "assets" / "fonts" / "princess.otf", 32),
-    "princess-small": pygame.font.Font(
-        BASE_DIR / "assets" / "fonts" / "princess.otf", 24
-    ),
+    "princess-small": pygame.font.Font(BASE_DIR / "assets" / "fonts" / "princess.otf", 24),
+    "tiny": pygame.font.Font(BASE_DIR / "assets" / "fonts" / "princess.otf", 10),
 }
 
 SOUNDS = {
@@ -131,16 +147,17 @@ SOUNDS = {
     "hit-enemy": pygame.mixer.Sound(BASE_DIR / "assets" / "sounds" / "hit_enemy.wav"),
     "hit-player": pygame.mixer.Sound(BASE_DIR / "assets" / "sounds" / "hit_player.wav"),
     "door": pygame.mixer.Sound(BASE_DIR / "assets" / "sounds" / "door.wav"),
-    "heart-taken": pygame.mixer.Sound(
-        BASE_DIR / "assets" / "sounds" / "heart_taken.wav"
-    ),
+    "heart-taken": pygame.mixer.Sound(BASE_DIR / "assets" / "sounds" / "heart_taken.wav"),
     "pot-wall": pygame.mixer.Sound(BASE_DIR / "assets" / "sounds" / "pot_wall.wav"),
+    "bow":      pygame.mixer.Sound(BASE_DIR / "assets" / "sounds" / "bow.wav"),
+    "boss-hit": pygame.mixer.Sound(BASE_DIR / "assets" / "sounds" / "boss_hit.wav"),
 }
 
 MUSIC = {
     "start": str(BASE_DIR / "assets" / "sounds" / "start_music.mp3"),
     "dungeon": str(BASE_DIR / "assets" / "sounds" / "dungeon_music.mp3"),
     "game-over": str(BASE_DIR / "assets" / "sounds" / "game_over_music.mp3"),
+    "boss": str(BASE_DIR / "assets" / "sounds" / "boss_music.mp3"),
 }
 
 COLOR_TITLE_SHADOW = (34, 34, 34)

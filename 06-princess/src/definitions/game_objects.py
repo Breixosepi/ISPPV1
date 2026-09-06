@@ -1,9 +1,9 @@
 """
-ISPPV1 2023
+ISPPV1 2026
 Study Case: The Legend of the Princess (ARPG)
 
-Author: Alejandro Mujica
-alejandro.j.mujic4@gmail.com
+Author: Eugenio Montilla
+eugeniorusso1411@gmail.com
 
 This file contains the definition for game objects.
 """
@@ -46,7 +46,6 @@ GAME_OBJECT_DEFS: Dict[str, Dict[str, Any]] = {
             "default": {"frame": 16},
         },
     },
-    # Definition of heart as a consumable object type.
     "heart": {
         "type": "heart",
         "texture": "hearts",
@@ -60,5 +59,51 @@ GAME_OBJECT_DEFS: Dict[str, Dict[str, Any]] = {
             "default": {"frame": 5},
         },
         "on_consume": _pickup_heart,
+    },
+    # ─────────────────────────────────────────────────────────────────────────
+    "chest": {
+        "type": "chest",
+        "texture": "chest",
+        "frame": 1,
+        "width": 16,
+        "height": 16,
+        "solid": True,
+        "consumable": False,
+        "takeable": False,
+        "default_state": "closed",
+        "states": {
+            "closed": {"frame": 1},
+            "open":   {"frame": 2},
+        },
+    },
+
+    "arrow": {
+        "type": "arrow",
+        "texture": "arrow",
+        "frame": 1,
+        "width": 16,
+        "height": 16,
+        "solid": False,
+        "consumable": False,
+        "takeable": False,
+        "default_state": "idle",
+        "states": {
+            "idle": {"frame": 1},
+        },
+    },
+    
+    "bow": {
+        "type": "bow",
+        "texture": "bow",
+        "frame": 1,
+        "width": 16,
+        "height": 16,
+        "solid": False,
+        "consumable": False,
+        "takeable": False,
+        "default_state": "idle",
+        "states": {
+            "idle": {"frame": 1},
+        },
     },
 }

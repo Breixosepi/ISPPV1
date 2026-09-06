@@ -1,9 +1,9 @@
 """
-ISPPV1 2023
+ISPPV1 2026
 Study Case: The Legend of the Princess (ARPG)
 
-Author: Alejandro Mujica
-alejandro.j.mujic4@gmail.com
+Author: Eugenio Montilla
+eugeniorusso1411@gmail.com
 
 This file contains the definition for entities.
 """
@@ -62,6 +62,30 @@ ENTITY_DEFS: Dict[str, Dict[str, Any]] = {
                 "loops": 1,
                 "texture": "character-swing-sword",
             },
+            "bow-left": {
+                "frames": [13, 14, 15, 15],
+                "interval": 0.05,
+                "loops": 1,
+                "texture": "character-bow",
+            },
+            "bow-right": {
+                "frames": [9, 10, 11, 12],
+                "interval": 0.05,
+                "loops": 1,
+                "texture": "character-bow",
+            },
+            "bow-down": {
+                "frames": [1, 2, 3, 4],
+                "interval": 0.05,
+                "loops": 1,
+                "texture": "character-bow",
+            },
+            "bow-up": {
+                "frames": [5, 6, 7, 8],
+                "interval": 0.05,
+                "loops": 1,
+                "texture": "character-bow",
+            },
             "pot-lift-down": {
                 "frames": [1, 2, 3],
                 "interval": 0.1,
@@ -84,6 +108,11 @@ ENTITY_DEFS: Dict[str, Dict[str, Any]] = {
                 "frames": [10, 11, 12],
                 "interval": 0.1,
                 "loops": 1,
+                "texture": "character-pot-lift",
+            },
+            "dance": {
+                "frames": [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12],
+                "interval": 0.1,
                 "texture": "character-pot-lift",
             },
             "pot-walk-down": {
@@ -175,6 +204,21 @@ ENTITY_DEFS: Dict[str, Dict[str, Any]] = {
             "idle-right": {"frames": [83]},
             "idle-down": {"frames": [59]},
             "idle-up": {"frames": [95]},
+        },
+    },
+    "boss": {
+        "texture": "boss",
+        "walk_speed": 40,
+        "health": 6,
+        "animations": {
+            "walk-down":  {"frames": [2, 1, 2, 3], "interval": 0.2, "texture": "boss"},
+            "walk-left":  {"frames": [5, 4, 5, 6], "interval": 0.2, "texture": "boss"},
+            "walk-right": {"frames": [8, 7, 8, 9], "interval": 0.2, "texture": "boss"},
+            "walk-up":    {"frames": [11, 10, 11, 12], "interval": 0.2, "texture": "boss"},
+            "idle-down":  {"frames": [2], "texture": "boss"},
+            "idle-left":  {"frames": [5], "texture": "boss"},
+            "idle-right": {"frames": [8], "texture": "boss"},
+            "idle-up":    {"frames": [11], "texture": "boss"},
         },
     },
 }
