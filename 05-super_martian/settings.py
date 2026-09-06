@@ -1,9 +1,9 @@
 """
-ISPPV1 2023
+ISPPV1 2026
 Study Case: Super Martian (Platformer)
 
-Author: Alejandro Mujica
-alejandro.j.mujic4@gmail.com
+Author: Eugenio Montilla
+eugeniorusso1411@gmail.com
 
 This file contains the game settings that include the association of the
 inputs with an their ids, constants of values to set up the game, sounds,
@@ -47,6 +47,16 @@ CLIMB_SPEED = 90
 
 GRAVITY = 980
 
+DEFAULT_LEVEL_TIME = 30
+PLAYER_SPAWN_ROW = 9
+KEY_BLOCK_HIT_TOLERANCE = 6
+
+COIN_GREEN = 62
+COIN_BLUE = 61
+COIN_RED = 55
+COIN_YELLOW = 54
+COIN_FRAMES = [COIN_GREEN, COIN_BLUE, COIN_RED, COIN_YELLOW]
+
 TARGET_SCORES = {
     1: 100,
     2: 800,
@@ -73,6 +83,7 @@ KEY_BLOCK_GID = 18
 KEY_BLOCK_USED_GID = 77
 KEY_FRAME_INDEX = 146
 LEVEL_TRANSITION_TIME = 2.0
+VARIABLE = 42
 
 BASE_DIR = pathlib.Path(__file__).parent
 
@@ -102,12 +113,10 @@ SOUNDS = {
     "jump": pygame.mixer.Sound(BASE_DIR / "assets" / "sounds" / "jump.wav"),
     "timer": pygame.mixer.Sound(BASE_DIR / "assets" / "sounds" / "timer.wav"),
     "count": pygame.mixer.Sound(BASE_DIR / "assets" / "sounds" / "count.wav"),
-    "level_complete": pygame.mixer.Sound(
-        BASE_DIR / "assets" / "sounds" / "pickup_coin.wav"
-    ),
 }
 
 SOUNDS["pickup_coin"].set_volume(0.5)
+SOUNDS["level_complete"] = SOUNDS["pickup_coin"]
 
 FONTS = {
     "small": pygame.font.Font(BASE_DIR / "assets" / "fonts" / "font.ttf", 8),
