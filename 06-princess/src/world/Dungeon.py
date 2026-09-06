@@ -1,14 +1,15 @@
 """
-ISPPV1 2023
+ISPPV1 2026
 Study Case: The Legend of the Princess (ARPG)
 
-Author: Alejandro Mujica
-alejandro.j.mujic4@gmail.com
+Author: Eugenio Montilla
+eugeniorusso1411@gmail.com
 
 This file contains the class Dungeon.
 """
 
 import math
+import random
 from typing import Callable, TypeVar
 
 import pygame
@@ -16,7 +17,7 @@ import pygame
 from gale.timer import Timer
 
 import settings
-from src.world.Room import Room
+from src.world.Room import Room, _BOSS_ROOM_CHANCE, _CHEST_SPAWN_CHANCE
 
 
 class Dungeon:
@@ -28,17 +29,44 @@ class Dungeon:
         self.player = player
         self.on_game_over = on_game_over
 
-        # Current room we're operating in.
-        self.current_room = Room(self.player, self.on_game_over)
+        self._chest_pending = False
 
-        # Room we're moving the camera to during a shift; becomes the
-        # active room afterwards.
+        self.current_room = Room(
+            self.player,
+            self.on_game_over,
+            spawn_chest=self._should_spawn_chest(),
+        )
+
         self.next_room = None
-
-        # Translation offsets, only used while shifting screens.
         self.camera_x = 0
         self.camera_y = 0
         self.shifting = False
+
+
+    def _should_spawn_chest(self) -> bool:
+        """
+        Reglas:
+          3. En caso contrario lanzamos la probabilidad (_CHEST_SPAWN_CHANCE).
+        """
+        if self.player.has_bow:
+            return False
+        if self._chest_pending:
+            return True
+        return random.randint(1, _CHEST_SPAWN_CHANCE) == 1
+
+    def _update_chest_state(self) -> None:
+        """
+        """
+        if self.player.has_bow:
+            self._chest_pending = False
+            return
+
+        chest = self.current_room._chest
+        if chest and chest.state != "open":
+            self._chest_pending = True
+        else:
+            self._chest_pending = False
+
 
     def begin_shifting(self, shift_x: float, shift_y: float) -> None:
         """
@@ -47,9 +75,37 @@ class Dungeon:
         PlayerWalkState/PlayerPotWalkState.
         """
         self.shifting = True
-        self.next_room = Room(self.player, self.on_game_over)
 
-        # Start all doors in next room as open until we get in.
+        if shift_x > 0:
+            entry_direction = "left"
+        elif shift_x < 0:
+            entry_direction = "right"
+        elif shift_y > 0:
+            entry_direction = "up"
+        else:
+            entry_direction = "down"
+
+        if self.player.has_bow:
+            self._rooms_since_bow = getattr(self, "_rooms_since_bow", 0) + 1
+        
+        is_boss = False
+        if self.player.has_bow and not self.current_room.is_boss_room:
+            if random.randint(1, _BOSS_ROOM_CHANCE) == 1 or getattr(self, "_rooms_since_bow", 0) >= 4:
+                is_boss = True
+                self._rooms_since_bow = 0
+
+        self._update_chest_state()
+
+        spawn_chest = False if is_boss else self._should_spawn_chest()
+
+        self.next_room = Room(
+            self.player,
+            self.on_game_over,
+            is_boss_room=is_boss,
+            entry_direction=entry_direction,
+            spawn_chest=spawn_chest,
+        )
+
         for doorway in self.next_room.doorways:
             doorway.open = True
 
@@ -80,9 +136,6 @@ class Dungeon:
                 - self.player.height
             )
 
-        # Tween the camera in whichever direction the new room is in, as
-        # well as the player to be at the opposite door in the next room,
-        # walking through the wall (whose art will cover them there).
         to_tween = [
             (self, {"camera_x": shift_x, "camera_y": shift_y}),
             (self.player, {"x": player_x, "y": player_y}),
@@ -101,7 +154,6 @@ class Dungeon:
 
         self._finish_shifting()
 
-        # Reset player to the correct location in the room.
         if shift_x < 0:
             self.player.x = (
                 settings.MAP_RENDER_OFFSET_X
@@ -125,17 +177,20 @@ class Dungeon:
             self.player.y = settings.MAP_RENDER_OFFSET_Y + self.player.height / 2
             self.player.direction = "down"
 
-        # Close all doors in the room we just entered (self.current_room
         # was just swapped to it by _finish_shifting above) — they were
-        # only forced open so the player could visually walk through the
-        # wall opening during the transition.
         for doorway in self.current_room.doorways:
             doorway.open = False
 
-        # Avoid receiving damage right as we enter the new room.
         self.player.go_invulnerable(1)
 
         settings.SOUNDS["door"].play()
+        if self.current_room.is_boss_room:
+            pygame.mixer.music.load(settings.MUSIC["boss"])
+            pygame.mixer.music.play(-1)
+        elif not self.current_room.is_boss_room and getattr(self, '_last_was_boss', False):
+            pygame.mixer.music.load(settings.MUSIC["dungeon"])
+            pygame.mixer.music.play(-1)
+        self._last_was_boss = self.current_room.is_boss_room
 
     def _finish_shifting(self) -> None:
         """
@@ -155,15 +210,10 @@ class Dungeon:
         if not self.shifting:
             self.current_room.update(dt)
         else:
-            # Still update the player animation if we're shifting rooms.
             if self.player.current_animation:
                 self.player.current_animation.update(dt)
 
     def render(self, surface: pygame.Surface) -> None:
-        # Applied directly to every draw call (rather than composited
-        # through an intermediate surface) so a room positioned a full
-        # screen away by its adjacent offset isn't clipped away by an
-        # equally screen-sized buffer before the camera pans over to it.
         offset_x = -math.floor(self.camera_x)
         offset_y = -math.floor(self.camera_y)
 

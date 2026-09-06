@@ -1,9 +1,9 @@
 """
-ISPPV1 2023
+ISPPV1 2026
 Study Case: The Legend of the Princess (ARPG)
 
-Author: Alejandro Mujica
-alejandro.j.mujic4@gmail.com
+Author: Eugenio Montilla
+eugeniorusso1411@gmail.com
 
 This file contains the class Doorway.
 """
@@ -71,7 +71,6 @@ class Doorway:
     ) -> None:
         texture = settings.TEXTURES["tiles"]
 
-        # Used for shifting the doors when sliding rooms.
         x = self.x + offset_x
         y = self.y + offset_y
 
