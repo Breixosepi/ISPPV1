@@ -1,9 +1,9 @@
 """
-ISPPV1 2023
+ISPPV1 2026
 Study Case: Super Martian (Platformer)
 
-Author: Alejandro Mujica
-alejandro.j.mujic4@gmail.com
+Author: Eugenio Montilla
+eugeniorusso1411@gmail.com
 
 This module contains all of the creature states.
 """
@@ -11,5 +11,4 @@ This module contains all of the creature states.
 from src.states.entities.creatures_states.FlyingFallState import FlyingFallState
 from src.states.entities.creatures_states.FlyState import FlyState
 from src.states.entities.creatures_states.SnailWalkState import SnailWalkState
-
-(FlyingFallState, FlyState, SnailWalkState)
+__all__ = ["FlyingFallState", "FlyState", "SnailWalkState"]

@@ -1,9 +1,9 @@
 """
-ISPPV1 2023
+ISPPV1 2026
 Study Case: Super Martian (Platformer)
 
-Author: Alejandro Mujica
-alejandro.j.mujic4@gmail.com
+Author: Eugenio Montilla
+eugeniorusso1411@gmail.com
 
 This file contains the base class GameEntity.
 """
@@ -64,7 +64,7 @@ class GameEntity(mixins.DrawableMixin, mixins.AnimatedMixin, mixins.CollidableMi
         # Applied unconditionally (not just while jumping/falling) so the
         # vertical move below is never a no-op dy=0 call, which would skip
         # move_and_collide's y-axis check and leave on_ground stale.
-        if self.state_machine.current.__class__.__name__ != "ClimbState":
+        if getattr(self.state_machine.current, "has_gravity", True):
             self.vy += settings.GRAVITY * dt
 
         self.state_machine.update(dt)
@@ -88,7 +88,6 @@ class GameEntity(mixins.DrawableMixin, mixins.AnimatedMixin, mixins.CollidableMi
         else:
             self.on_ground = False
 
-        # Keep the entity from walking off either edge of the world.
         if self.x < 0:
             self.x = 0
         elif self.x + self.width > self.tilemap.pixel_width:

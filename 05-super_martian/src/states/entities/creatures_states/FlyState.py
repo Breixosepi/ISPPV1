@@ -1,9 +1,9 @@
 """
-ISPPV1 2023
+ISPPV1 2026
 Study Case: Super Martian (Platformer)
 
-Author: Alejandro Mujica
-alejandro.j.mujic4@gmail.com
+Author: Eugenio Montilla
+eugeniorusso1411@gmail.com
 
 This file contains the class FlyState for flying creatures.
 """
@@ -12,6 +12,8 @@ from src.states.entities.BaseEntityState import BaseEntityState
 
 
 class FlyState(BaseEntityState):
+    has_gravity: bool = False
+
     def enter(self, direction: str) -> None:
         self.entity.change_animation("fly")
         # This sprite's artwork faces left by default, opposite of
@@ -20,13 +22,9 @@ class FlyState(BaseEntityState):
         self.entity.vx = (
             -self.entity.fly_speed if direction == "left" else self.entity.fly_speed
         )
-
-    def update(self, dt: float) -> None:
-        # Flying creatures ignore gravity while airborne: undo the gravity
-        # GameEntity.update already added to vy this frame so they hold a
-        # level height until FlyingFallState takes over.
         self.entity.vy = 0
 
+    def update(self, dt: float) -> None:
         if self.entity.collided_x:
             self.entity.change_state("fall")
             return
