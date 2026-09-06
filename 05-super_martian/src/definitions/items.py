@@ -1,9 +1,9 @@
 """
-ISPPV1 2023
+ISPPV1 2026
 Study Case: Super Martian (Platformer)
 
-Author: Alejandro Mujica
-alejandro.j.mujic4@gmail.com
+Author: Eugenio Montilla
+eugeniorusso1411@gmail.com
 
 This file contains the definition for items.
 """
@@ -30,19 +30,19 @@ def pickup_coin(
 
 
 def pickup_green_coin(coin: GameItem, player: Player):
-    pickup_coin(coin, player, 1, 62, random.uniform(2, 4))
+    pickup_coin(coin, player, 1, settings.COIN_GREEN, random.uniform(2, 4))
 
 
 def pickup_blue_coin(coin: GameItem, player: Player):
-    pickup_coin(coin, player, 5, 61, random.uniform(5, 8))
+    pickup_coin(coin, player, 5, settings.COIN_BLUE, random.uniform(5, 8))
 
 
 def pickup_red_coin(coin: GameItem, player: Player):
-    pickup_coin(coin, player, 20, 55, random.uniform(10, 18))
+    pickup_coin(coin, player, 20, settings.COIN_RED, random.uniform(10, 18))
 
 
 def pickup_yellow_coin(coin: GameItem, player: Player):
-    pickup_coin(coin, player, 50, 54, random.uniform(20, 25))
+    pickup_coin(coin, player, 50, settings.COIN_YELLOW, random.uniform(20, 25))
 
 
 def pickup_key(key: GameItem, player: Player):
@@ -54,25 +54,25 @@ def pickup_key(key: GameItem, player: Player):
 
 ITEMS: Dict[str, Dict[int, Dict[str, Any]]] = {
     "coins": {
-        62: {
+        settings.COIN_GREEN: {
             "texture_id": "tiles",
             "consumable": True,
             "collidable": True,
             "on_consume": pickup_green_coin,
         },
-        61: {
+        settings.COIN_BLUE: {
             "texture_id": "tiles",
             "consumable": True,
             "collidable": True,
             "on_consume": pickup_blue_coin,
         },
-        55: {
+        settings.COIN_RED: {
             "texture_id": "tiles",
             "consumable": True,
             "collidable": True,
             "on_consume": pickup_red_coin,
         },
-        54: {
+        settings.COIN_YELLOW: {
             "texture_id": "tiles",
             "consumable": True,
             "collidable": True,
