@@ -5,20 +5,21 @@ Study Case: The Legend of the Princess (ARPG)
 Author: Eugenio Montilla
 eugeniorusso1411@gmail.com
 
-This file contains the class PlayerPotLiftState.
+This file contains the class PlayerShootBowState.
 """
 
-from typing import Any, TypeVar
+from typing import TypeVar
 
 import pygame
 
 from gale.state import StateMachine
-from gale.timer import Timer
 
+import settings
 from src.states.entity.BaseEntityState import BaseEntityState
+from src.Bow import Bow
 
 
-class PlayerPotLiftState(BaseEntityState):
+class PlayerShootBowState(BaseEntityState):
     def __init__(
         self,
         player: TypeVar("Player"),
@@ -27,34 +28,26 @@ class PlayerPotLiftState(BaseEntityState):
     ) -> None:
         super().__init__(player, state_machine)
         self.dungeon = dungeon
-        self.entity.change_animation(f"pot-lift-{self.entity.direction}")
+        self.fired = False
 
-    def enter(self, pot: Any) -> None:
-        self.pot = pot
-        self.pot.taken = True
+    def enter(self) -> None:
+        self.entity.offset_x = 8
+        self.entity.offset_y = 5
+        self.entity.change_animation(f"bow-{self.entity.direction}")
         self.entity.current_animation.reset()
-        Timer.tween(
-            0.3,
-            [
-                (
-                    self.pot,
-                    {
-                        "x": self.entity.x,
-                        "y": self.entity.y - self.pot.height / 2,
-                    },
-                )
-            ],
-        )
+        self.fired = False
 
     def update(self, dt: float) -> None:
-        self.entity.sword_requested = False
-        self.entity.interact_requested = False
+        if self.entity.current_animation.current_frame_index == 2 and not self.fired:
+            self.fired = True
+            arrow = Bow.fire(self.entity)
+            self.dungeon.current_room.projectiles.append(arrow)
+            settings.SOUNDS["bow"].play()
 
         if self.entity.current_animation.times_played > 0:
             self.entity.current_animation.times_played = 0
-            self.entity.change_state("pot-idle", pot=self.pot)
+            self.entity.change_state("idle")
 
     def render(self, surface: pygame.Surface) -> None:
         anim = self.entity.current_animation
         self.entity.render_sprite(surface, anim.texture_id, anim.get_current_frame())
-        self.pot.render(surface)

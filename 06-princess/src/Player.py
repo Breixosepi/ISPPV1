@@ -1,9 +1,9 @@
 """
-ISPPV1 2023
+ISPPV1 2026
 Study Case: The Legend of the Princess (ARPG)
 
-Author: Alejandro Mujica
-alejandro.j.mujic4@gmail.com
+Author: Eugenio Montilla
+eugeniorusso1411@gmail.com
 
 This file contains the class Player.
 """
@@ -14,6 +14,7 @@ from gale.command import CommandBindings
 from gale.input_handler import InputData
 
 from src.commands import (
+    BOW,
     INTERACT,
     MOVE_DOWN,
     MOVE_LEFT,
@@ -24,6 +25,8 @@ from src.commands import (
     STOP_MOVE_RIGHT,
     STOP_MOVE_UP,
     SWORD,
+    DANCE,
+    STOP_DANCE,
 )
 from src.Entity import Entity
 
@@ -32,11 +35,12 @@ class Player(Entity):
     def __init__(self, *args: Any, **kwargs: Any) -> None:
         super().__init__(*args, **kwargs)
 
-        # Edge-triggered intent: sword/take are one-shot actions resolved
-        # (and cleared) by whichever player state's update() consumes them,
-        # the same way jump_requested works in 05-super_martian.
         self.sword_requested = False
         self.interact_requested = False
+
+        self.has_bow = False
+        self.bow_requested = False
+        self.dance_held = False
 
         self.command_bindings = CommandBindings()
         self.command_bindings.bind("move_left", press=MOVE_LEFT, release=STOP_MOVE_LEFT)
@@ -47,6 +51,11 @@ class Player(Entity):
         self.command_bindings.bind("move_down", press=MOVE_DOWN, release=STOP_MOVE_DOWN)
         self.command_bindings.bind("sword", press=SWORD)
         self.command_bindings.bind("enter", press=INTERACT)
+        self.command_bindings.bind("bow", press=BOW)
+        self.command_bindings.bind("dance", press=DANCE, release=STOP_DANCE)
+
+    def receive_bow(self) -> None:
+        self.has_bow = True
 
     def collides(self, target: Any) -> bool:
         """

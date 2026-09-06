@@ -1,9 +1,9 @@
 """
-ISPPV1 2023
+ISPPV1 2026
 Study Case: The Legend of the Princess (ARPG)
 
-Author: Alejandro Mujica
-alejandro.j.mujic4@gmail.com
+Author: Eugenio Montilla
+eugeniorusso1411@gmail.com
 
 This file contains the class PlayerSwingSwordState.
 """
@@ -28,11 +28,9 @@ class PlayerSwingSwordState(BaseEntityState):
         super().__init__(player, state_machine)
         self.dungeon = dungeon
 
-        # Render offset for spaced character sprite.
         self.entity.offset_y = 5
         self.entity.offset_x = 8
 
-        # Hitbox based on where the player is and facing.
         direction = self.entity.direction
 
         if direction == "left":
@@ -72,8 +70,15 @@ class PlayerSwingSwordState(BaseEntityState):
 
         for entity in self.dungeon.current_room.entities:
             if entity.collides(self.sword_hitbox):
-                entity.damage(1)
-                settings.SOUNDS["hit-enemy"].play()
+                room = self.dungeon.current_room
+                if room.is_boss_room and room._boss and entity == room._boss:
+                    if not room._boss_immune:
+                        entity.damage(1)
+                        settings.SOUNDS["hit-enemy"].play()
+                        room._boss_immune = True 
+                else:
+                    entity.damage(1)
+                    settings.SOUNDS["hit-enemy"].play()
 
         if self.entity.current_animation.times_played > 0:
             self.entity.current_animation.times_played = 0

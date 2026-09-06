@@ -1,9 +1,9 @@
 """
-ISPPV1 2023
+ISPPV1 2026
 Study Case: The Legend of the Princess (ARPG)
 
-Author: Alejandro Mujica
-alejandro.j.mujic4@gmail.com
+Author: Eugenio Montilla
+eugeniorusso1411@gmail.com
 
 This file contains the Command classes shared by the player (driven by
 InputHandler through CommandBindings) and by any AI-controlled entity
@@ -71,6 +71,20 @@ class InteractCommand(Command):
         receiver.interact_requested = True
 
 
+class BowCommand(Command):
+    """Solicita disparar una flecha (solo tiene efecto si player.has_bow es True)."""
+    def execute(self, receiver, dt: float = 0.0) -> None:
+        receiver.bow_requested = True
+
+class DanceCommand(Command):
+    def execute(self, receiver, dt: float = 0.0) -> None:
+        receiver.dance_held = True
+
+class StopDanceCommand(Command):
+    def execute(self, receiver, dt: float = 0.0) -> None:
+        receiver.dance_held = False
+
+
 MOVE_LEFT = MoveLeftCommand()
 MOVE_RIGHT = MoveRightCommand()
 MOVE_UP = MoveUpCommand()
@@ -81,3 +95,6 @@ STOP_MOVE_UP = StopMoveUpCommand()
 STOP_MOVE_DOWN = StopMoveDownCommand()
 SWORD = SwordCommand()
 INTERACT = InteractCommand()
+BOW = BowCommand()
+DANCE = DanceCommand()
+STOP_DANCE = StopDanceCommand()

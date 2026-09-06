@@ -1,9 +1,9 @@
 """
-ISPPV1 2023
+ISPPV1 2026
 Study Case: The Legend of the Princess (ARPG)
 
-Author: Alejandro Mujica
-alejandro.j.mujic4@gmail.com
+Author: Eugenio Montilla
+eugeniorusso1411@gmail.com
 
 This file contains the class PlayerPotWalkState.
 """
@@ -17,7 +17,7 @@ from gale.state import StateMachine
 import settings
 from src.Projectile import Projectile
 from src.states.entity.BaseEntityState import BaseEntityState
-from src.states.entity.movement import move_and_bump
+from src.states.entity.movement import move_and_bump, check_doorways
 
 
 class PlayerPotWalkState(BaseEntityState):
@@ -30,7 +30,6 @@ class PlayerPotWalkState(BaseEntityState):
         super().__init__(player, state_machine)
         self.dungeon = dungeon
 
-        # Render offset for spaced character sprite.
         self.entity.offset_y = 5
         self.entity.offset_x = 0
 
@@ -68,57 +67,13 @@ class PlayerPotWalkState(BaseEntityState):
             player.change_state("pot-idle", pot=self.pot)
             return
 
-        # Perform base collision detection against walls.
         bumped = move_and_bump(player, dt)
 
-        # If we bumped something when checking collision, check any doorway.
         if bumped:
-            self._check_doorways(dt)
+            check_doorways(self.entity, self.dungeon, dt)
 
         self.pot.x = player.x
         self.pot.y = player.y - self.pot.height / 2
-
-    def _check_doorways(self, dt: float) -> None:
-        player = self.entity
-        speed = player.walk_speed
-        room = self.dungeon.current_room
-
-        if player.direction == "left":
-            player.x -= speed * dt
-
-            for doorway in room.doorways:
-                if doorway.open and player.collides(doorway):
-                    player.y = doorway.y + 4
-                    self.dungeon.begin_shifting(-settings.VIRTUAL_WIDTH, 0)
-
-            player.x += speed * dt
-        elif player.direction == "right":
-            player.x += speed * dt
-
-            for doorway in room.doorways:
-                if doorway.open and player.collides(doorway):
-                    player.y = doorway.y + 4
-                    self.dungeon.begin_shifting(settings.VIRTUAL_WIDTH, 0)
-
-            player.x -= speed * dt
-        elif player.direction == "up":
-            player.y -= speed * dt
-
-            for doorway in room.doorways:
-                if doorway.open and player.collides(doorway):
-                    player.x = doorway.x + 8
-                    self.dungeon.begin_shifting(0, -settings.VIRTUAL_HEIGHT)
-
-            player.y += speed * dt
-        else:
-            player.y += speed * dt
-
-            for doorway in room.doorways:
-                if doorway.open and player.collides(doorway):
-                    player.x = doorway.x + 8
-                    self.dungeon.begin_shifting(0, settings.VIRTUAL_HEIGHT)
-
-            player.y -= speed * dt
 
     def render(self, surface: pygame.Surface) -> None:
         anim = self.entity.current_animation

@@ -1,9 +1,9 @@
 """
-ISPPV1 2023
+ISPPV1 2026
 Study Case: The Legend of the Princess (ARPG)
 
-Author: Alejandro Mujica
-alejandro.j.mujic4@gmail.com
+Author: Eugenio Montilla
+eugeniorusso1411@gmail.com
 
 This file contains the class PlayerIdleState.
 """
@@ -14,42 +14,26 @@ import pygame
 
 from gale.state import StateMachine
 
-from src.states.entity.BaseEntityState import BaseEntityState
+from src.Bow import Bow
+from src.states.entity.player.PlayerActionState import PlayerActionState
+import settings
 
 
-class PlayerIdleState(BaseEntityState):
-    def __init__(
-        self,
-        player: TypeVar("Player"),
-        state_machine: StateMachine,
-        dungeon: TypeVar("Dungeon"),
-    ) -> None:
-        super().__init__(player, state_machine)
-        self.dungeon = dungeon
-
+class PlayerIdleState(PlayerActionState):
     def enter(self) -> None:
-        # Render offset for spaced character sprite.
         self.entity.offset_y = 5
         self.entity.offset_x = 0
         self.entity.change_animation(f"idle-{self.entity.direction}")
 
     def update(self, dt: float) -> None:
-        if self.entity.sword_requested:
-            self.entity.sword_requested = False
-            self.entity.change_state("swing-sword")
+        if self.handle_actions():
             return
 
-        if self.entity.interact_requested:
-            self.entity.interact_requested = False
-            self.dungeon.current_room.take_adjacent_pot(self.entity)
-
-            if self.entity.state_machine.current is not self:
-                return
-
-        held = self.entity.held
+        player = self.entity
+        held = player.held
 
         if held["move_left"] or held["move_right"] or held["move_up"] or held["move_down"]:
-            self.entity.change_state("walk")
+            player.change_state("walk")
 
     def render(self, surface: pygame.Surface) -> None:
         anim = self.entity.current_animation
