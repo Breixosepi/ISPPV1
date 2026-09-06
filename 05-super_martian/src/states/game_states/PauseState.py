@@ -1,9 +1,9 @@
 """
-ISPPV1 2023
+ISPPV1 2026
 Study Case: Super Martian (Platformer)
 
-Author: Alejandro Mujica
-alejandro.j.mujic4@gmail.com
+Author: Eugenio Montilla
+eugeniorusso1411@gmail.com
 
 This file contains the class PauseState.
 """
@@ -17,6 +17,7 @@ from gale.state import BaseState
 from gale.text import render_text
 
 import settings
+from src.hud import render_hud
 
 
 class PauseState(BaseState):
@@ -24,7 +25,6 @@ class PauseState(BaseState):
         self.level = enter_params["level"]
         self.camera = enter_params["camera"]
         self.game_level = enter_params["game_level"]
-        self.tilemap = self.game_level.tilemap
         self.player = enter_params["player"]
         self.clock = enter_params["clock"]
         pygame.mixer.music.pause()
@@ -35,24 +35,16 @@ class PauseState(BaseState):
     def render(self, surface: pygame.Surface) -> None:
         self.game_level.render(surface, self.camera)
         self.player.render(surface, self.camera)
+        render_hud(surface, self.player.score, self.clock.time)
 
         render_text(
             surface,
-            f"Score: {self.player.score}",
-            settings.FONTS["small"],
-            5,
-            5,
+            "PAUSED",
+            settings.FONTS["medium"],
+            settings.VIRTUAL_WIDTH // 2,
+            settings.VIRTUAL_HEIGHT // 2 - 10,
             (255, 255, 255),
-            shadowed=True,
-        )
-
-        render_text(
-            surface,
-            f"Time: {self.clock.time}",
-            settings.FONTS["small"],
-            settings.VIRTUAL_WIDTH - 60,
-            5,
-            (255, 255, 255),
+            center=True,
             shadowed=True,
         )
 

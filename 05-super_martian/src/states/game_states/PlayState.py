@@ -1,9 +1,9 @@
 """
-ISPPV1 2023
+ISPPV1 2026
 Study Case: Super Martian (Platformer)
 
-Author: Alejandro Mujica
-alejandro.j.mujic4@gmail.com
+Author: Eugenio Montilla
+eugeniorusso1411@gmail.com
 
 This file contains the class PlayState.
 """
@@ -24,6 +24,7 @@ from src.Clock import Clock
 from src.GameLevel import GameLevel
 from src.Player import Player
 from src.GameItem import GameItem
+from src.hud import render_hud
 
 
 class PlayState(BaseState):
@@ -45,9 +46,8 @@ class PlayState(BaseState):
             # it, so gale.tilemap's one-way platform collision (which
             # requires the entity to already be at/above the surface) picks
             # it up on the very first frame instead of falling through.
-            spawn_y = 9 * self.tilemap.tile_height - 20
+            spawn_y = settings.PLAYER_SPAWN_ROW * self.tilemap.tile_height - 20
             self.player = Player(0, spawn_y, self.game_level)
-            self.player.change_state("idle")
 
         self.camera = enter_params.get("camera")
 
@@ -61,7 +61,7 @@ class PlayState(BaseState):
         self.clock = enter_params.get("clock")
 
         if self.clock is None:
-            self.clock = Clock(30)
+            self.clock = Clock(settings.DEFAULT_LEVEL_TIME)
 
             def countdown_timer():
                 self.clock.count_down()
@@ -80,7 +80,6 @@ class PlayState(BaseState):
         self.transitioning = False
         # 0.0 = fully open, 1.0 = fully closed
         self.transition_progress = 0.0
-        self.countdown_timer_ref = None
 
     def update(self, dt: float) -> None:
         if self.player.is_dead:
@@ -156,13 +155,10 @@ class PlayState(BaseState):
             # and the player must be horizontally aligned with the block
             if (
                 self.player.vy < 0  # moving upward
-                and abs(player_head_y - block_bottom) < 6
+                and abs(player_head_y - block_bottom) < settings.KEY_BLOCK_HIT_TOLERANCE
                 and bx <= player_center_x <= bx + tw
             ):
                 # Hit! Spawn the key
-                col = int(bx // tw)
-                row = int(by // th)
-                
                 if hasattr(self.game_level, "visual_block"):
                     self.game_level.visual_block.frame_index = settings.KEY_BLOCK_USED_GID - 1
                 
@@ -206,26 +202,7 @@ class PlayState(BaseState):
     def render(self, surface: pygame.Surface) -> None:
         self.game_level.render(surface, self.camera)
         self.player.render(surface, self.camera)
-
-        render_text(
-            surface,
-            f"Score: {self.player.score}",
-            settings.FONTS["small"],
-            5,
-            5,
-            (255, 255, 255),
-            shadowed=True,
-        )
-
-        render_text(
-            surface,
-            f"Time: {self.clock.time}",
-            settings.FONTS["small"],
-            settings.VIRTUAL_WIDTH - 60,
-            5,
-            (255, 255, 255),
-            shadowed=True,
-        )
+        render_hud(surface, self.player.score, self.clock.time)
 
         # Show target score indicator
         if not self.game_level.key_block_active and self.game_level.key_block_pos is not None:

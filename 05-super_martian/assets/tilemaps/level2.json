@@ -1276,7 +1276,7 @@
         {
          "columns":15,
          "firstgid":1,
-         "image":"..\/..\/..\/..\/..\/..\/..\/Downloads\/tileset super martian\/dungeon_tiles.png",
+         "image":"..\/graphics\/dungeon_tiles.png",
          "imageheight":288,
          "imagewidth":240,
          "margin":0,

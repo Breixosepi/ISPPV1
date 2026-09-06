@@ -1,9 +1,9 @@
 """
-ISPPV1 2023
+ISPPV1 2026
 Study Case: Super Martian (Platformer)
 
-Author: Alejandro Mujica
-alejandro.j.mujic4@gmail.com
+Author: Eugenio Montilla
+eugeniorusso1411@gmail.com
 
 This file contains the class GameLevel.
 """
@@ -85,7 +85,6 @@ class GameLevel:
         )
 
     def spawn_key(self) -> None:
-        """Spawn the key at the block position with a tween animation upward."""
         if self.key_block_pos is None or self.key_spawned:
             return
 
@@ -109,7 +108,6 @@ class GameLevel:
         self.key_item.active = True
         self.items.append(self.key_item)
 
-        # Animate the key rising from the block (20px upward over 0.5s)
         Timer.tween(
             0.5,
             [(self.key_item, {"y": by - 20})],
