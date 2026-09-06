@@ -30,11 +30,18 @@ class Dungeon:
         self.on_game_over = on_game_over
 
         self._chest_pending = False
+        self._rooms_without_chest = 0
+
+        spawn_chest_init = self._should_spawn_chest()
+        if not spawn_chest_init:
+            self._rooms_without_chest += 1
+        else:
+            self._rooms_without_chest = 0
 
         self.current_room = Room(
             self.player,
             self.on_game_over,
-            spawn_chest=self._should_spawn_chest(),
+            spawn_chest=spawn_chest_init,
         )
 
         self.next_room = None
@@ -47,6 +54,8 @@ class Dungeon:
         if self.player.has_bow:
             return False
         if self._chest_pending:
+            return True
+        if self._rooms_without_chest >= 5:
             return True
         return random.randint(1, _CHEST_SPAWN_CHANCE) == 1
 
@@ -91,6 +100,12 @@ class Dungeon:
         self._update_chest_state()
 
         spawn_chest = False if is_boss else self._should_spawn_chest()
+
+        if not self.player.has_bow:
+            if not spawn_chest:
+                self._rooms_without_chest += 1
+            else:
+                self._rooms_without_chest = 0
 
         self.next_room = Room(
             self.player,
