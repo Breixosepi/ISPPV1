@@ -49,8 +49,8 @@ Every project follows the same layout:
 Clone the repository and create a virtual environment at the root:
 
 ```bash
-git clone https://github.com/R3mmurd/VideoGameProgrammingI.git
-cd VideoGameProgrammingI
+git clone [https://github.com/Breixosepi/ISPPV1.git](https://github.com/Breixosepi/ISPPV1.git)
+cd ISPPV1
 python3 -m venv .venv
 source .venv/bin/activate       # On Windows: .venv\Scripts\activate
 pip install -r requirements.txt
@@ -71,7 +71,3 @@ Replace `01-pong` with the folder of the study case you want to try.
 ## License
 
 This project is licensed under the terms of the [MIT License](LICENSE).
-
-## Author
-
-Alejandro Mujica — alejandro.j.mujic4@gmail.com
