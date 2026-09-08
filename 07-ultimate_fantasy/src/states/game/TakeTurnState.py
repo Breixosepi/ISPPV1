@@ -49,6 +49,8 @@ class TakeTurnState(BaseState):
             self._take_party_turn(index + 1)
             return
 
+        self.battle_state.party_status_view.selected_index = index
+
         from src.states.game.BattleMessageState import BattleMessageState
 
         self.state_machine.push(

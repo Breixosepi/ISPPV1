@@ -29,13 +29,22 @@ class SelectActionState(BaseState):
         self.entity = entity
         self.on_action_selected = on_action_selected
 
-        items = [
-            (action["name"], self._make_selector(action)) for action in entity.actions
-        ]
-        items.append(("Nothing", self._nothing))
+        items = []
+        alphas = []
+        for action in entity.actions:
+            items.append((action["name"], self._make_selector(action)))
+            # Transparent if it's not a healing action
+            if action["name"] in ("Heal", "Global Heal"):
+                alphas.append(255)
+            else:
+                alphas.append(100)
 
-        self.menu = Menu(
-            0, settings.VIRTUAL_HEIGHT - 64, settings.VIRTUAL_WIDTH, 64, items=items
+        items.append(("Nothing", self._nothing))
+        alphas.append(100)
+
+        from src.gui.AlphaMenu import AlphaMenu
+        self.menu = AlphaMenu(
+            288, settings.VIRTUAL_HEIGHT - 64, 96, 64, items=items, alphas=alphas, font=settings.FONTS["small"]
         )
 
     def _make_selector(self, action: Dict[str, Any]) -> Callable[[], None]:

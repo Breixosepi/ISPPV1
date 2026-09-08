@@ -35,10 +35,13 @@ UNSAVED_QUIT_WARNING = (
 class PauseMenuState(BaseState):
     def enter(self, play_state: Any) -> None:
         self.play_state = play_state
+        
+        from src.gui.PartyStatusView import PartyStatusView
+        self.party_status_view = PartyStatusView(48, settings.VIRTUAL_HEIGHT - 64 - 8, 288, 64, play_state.world.party)
 
         self.menu = Menu(
             settings.VIRTUAL_WIDTH / 2 - 70,
-            settings.VIRTUAL_HEIGHT / 2 - 48,
+            settings.VIRTUAL_HEIGHT / 2 - 48 - 30,
             140,
             96,
             items=[
@@ -198,6 +201,17 @@ class PauseMenuState(BaseState):
         if not input_data.pressed:
             return
 
+        if input_id == "move_left":
+            self.party_status_view.selected_index = (self.party_status_view.selected_index - 1) % len(self.party_status_view.characters)
+            settings.SOUNDS["blip"].stop()
+            settings.SOUNDS["blip"].play()
+            return
+        elif input_id == "move_right":
+            self.party_status_view.selected_index = (self.party_status_view.selected_index + 1) % len(self.party_status_view.characters)
+            settings.SOUNDS["blip"].stop()
+            settings.SOUNDS["blip"].play()
+            return
+
         if input_id == "move_up":
             self.menu.navigate((0, -1))
         elif input_id == "move_down":
@@ -206,4 +220,5 @@ class PauseMenuState(BaseState):
             self.menu.confirm()
 
     def render(self, surface: pygame.Surface) -> None:
+        self.party_status_view.render(surface)
         self.menu.render(surface)

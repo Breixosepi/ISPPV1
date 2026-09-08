@@ -38,12 +38,12 @@ class BattleMessageState(BaseState):
         self.can_input = can_input
         self._on_close = on_close or (lambda: None)
         self.textbox = TextBox(
-            0,
+            288,
             settings.VIRTUAL_HEIGHT - 64,
-            settings.VIRTUAL_WIDTH,
+            96,
             64,
             message,
-            font=settings.FONTS["medium"],
+            font=settings.FONTS["small"],
             lines_per_page=3,
             on_close=self._on_textbox_close,
         )

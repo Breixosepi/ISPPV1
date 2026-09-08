@@ -56,7 +56,10 @@ class BattleState(BaseState):
         self.enemies = []
         self._create_enemies()
 
-        self.bottom_panel = Panel(0, settings.VIRTUAL_HEIGHT - 64, settings.VIRTUAL_WIDTH, 64)
+        self.bottom_right_panel = Panel(288, settings.VIRTUAL_HEIGHT - 64, 96, 64)
+        
+        from src.gui.PartyStatusView import PartyStatusView
+        self.party_status_view = PartyStatusView(0, settings.VIRTUAL_HEIGHT - 64, 288, 64, self.party)
 
         self._create_bars()
 
@@ -224,7 +227,6 @@ class BattleState(BaseState):
         for character in self.party.characters.values():
             if not character.dead:
                 character.render(surface)
-                character.energy_bar.render(surface)
-                character.exp_bar.render(surface)
 
-        self.bottom_panel.render(surface)
+        self.bottom_right_panel.render(surface)
+        self.party_status_view.render(surface)

@@ -24,11 +24,12 @@ class BattleMenuState(BaseState):
     def enter(self, battle_state: Any) -> None:
         self.battle_state = battle_state
         self.menu = Menu(
-            settings.VIRTUAL_WIDTH - 64,
+            288,
             settings.VIRTUAL_HEIGHT - 64,
-            64,
+            96,
             64,
             items=[("Fight", self._fight), ("Run", self._run)],
+            font=settings.FONTS["small"]
         )
 
     def _fight(self) -> None:

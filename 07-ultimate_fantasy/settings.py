@@ -82,51 +82,23 @@ TILE_IDS = {
 TEXTURES = {
     "tiles": pygame.image.load(BASE_DIR / "assets" / "graphics" / "sheet.png"),
     "background": pygame.image.load(BASE_DIR / "assets" / "graphics" / "background.png"),
-    "cursor-right": pygame.image.load(
-        BASE_DIR / "assets" / "graphics" / "cursor_right.png"
-    ),
+    "cursor-right": pygame.image.load(BASE_DIR / "assets" / "graphics" / "cursor_right.png"),
     "cursor-up": pygame.image.load(BASE_DIR / "assets" / "graphics" / "cursor_up.png"),
-    "healer-female": pygame.image.load(
-        BASE_DIR / "assets" / "graphics" / "characters" / "healer_f.png"
-    ),
-    "healer-male": pygame.image.load(
-        BASE_DIR / "assets" / "graphics" / "characters" / "healer_m.png"
-    ),
-    "mage-female": pygame.image.load(
-        BASE_DIR / "assets" / "graphics" / "characters" / "mage_f.png"
-    ),
-    "mage-male": pygame.image.load(
-        BASE_DIR / "assets" / "graphics" / "characters" / "mage_m.png"
-    ),
-    "warrior-female": pygame.image.load(
-        BASE_DIR / "assets" / "graphics" / "characters" / "warrior_f.png"
-    ),
-    "warrior-male": pygame.image.load(
-        BASE_DIR / "assets" / "graphics" / "characters" / "warrior_m.png"
-    ),
-    "ranger-female": pygame.image.load(
-        BASE_DIR / "assets" / "graphics" / "characters" / "ranger_f.png"
-    ),
-    "ranger-male": pygame.image.load(
-        BASE_DIR / "assets" / "graphics" / "characters" / "ranger_m.png"
-    ),
-    "npc-female": pygame.image.load(
-        BASE_DIR / "assets" / "graphics" / "characters" / "townfolk_f.png"
-    ),
-    "npc-male": pygame.image.load(
-        BASE_DIR / "assets" / "graphics" / "characters" / "townfolk_m.png"
-    ),
+    "healer-female": pygame.image.load(BASE_DIR / "assets" / "graphics" / "characters" / "healer_f.png"),
+    "healer-male": pygame.image.load(BASE_DIR / "assets" / "graphics" / "characters" / "healer_m.png"),
+    "mage-female": pygame.image.load(BASE_DIR / "assets" / "graphics" / "characters" / "mage_f.png"),
+    "mage-male": pygame.image.load(BASE_DIR / "assets" / "graphics" / "characters" / "mage_m.png"),
+    "warrior-female": pygame.image.load(BASE_DIR / "assets" / "graphics" / "characters" / "warrior_f.png"),
+    "warrior-male": pygame.image.load(BASE_DIR / "assets" / "graphics" / "characters" / "warrior_m.png"),
+    "ranger-female": pygame.image.load(BASE_DIR / "assets" / "graphics" / "characters" / "ranger_f.png"),
+    "ranger-male": pygame.image.load(BASE_DIR / "assets" / "graphics" / "characters" / "ranger_m.png"),
+    "npc-female": pygame.image.load( BASE_DIR / "assets" / "graphics" / "characters" / "townfolk_f.png"),
+    "npc-male": pygame.image.load(BASE_DIR / "assets" / "graphics" / "characters" / "townfolk_m.png"),
     "slime": pygame.image.load(BASE_DIR / "assets" / "graphics" / "enemies" / "slime.png"),
-    "small-worm": pygame.image.load(
-        BASE_DIR / "assets" / "graphics" / "enemies" / "small_worm.png"
-    ),
+    "small-worm": pygame.image.load(BASE_DIR / "assets" / "graphics" / "enemies" / "small_worm.png"),
     "snake": pygame.image.load(BASE_DIR / "assets" / "graphics" / "enemies" / "snake.png"),
-    "pumpking": pygame.image.load(
-        BASE_DIR / "assets" / "graphics" / "enemies" / "pumpking.png"
-    ),
-    "man-eater-flower": pygame.image.load(
-        BASE_DIR / "assets" / "graphics" / "enemies" / "man_eater_flower.png"
-    ),
+    "pumpking": pygame.image.load(BASE_DIR / "assets" / "graphics" / "enemies" / "pumpking.png"),
+    "man-eater-flower": pygame.image.load(BASE_DIR / "assets" / "graphics" / "enemies" / "man_eater_flower.png"),
 }
 
 # Shared by every gale.tilemap.TileMap in the game (world regions and
