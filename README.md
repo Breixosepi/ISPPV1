@@ -49,7 +49,7 @@ Every project follows the same layout:
 Clone the repository and create a virtual environment at the root:
 
 ```bash
-git clone [https://github.com/Breixosepi/ISPPV1.git](https://github.com/Breixosepi/ISPPV1.git)
+git clone https://github.com/Breixosepi/ISPPV1.git
 cd ISPPV1
 python3 -m venv .venv
 source .venv/bin/activate       # On Windows: .venv\Scripts\activate
