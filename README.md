@@ -51,7 +51,7 @@ Clone the repository and create a virtual environment at the root:
 ```bash
 git clone https://github.com/Breixosepi/ISPPV1.git
 cd ISPPV1
-python3 -m venv .venv
+py -3.13 -m venv .venv
 source .venv/bin/activate       # On Windows: .venv\Scripts\activate
 pip install -r requirements.txt
 ```
