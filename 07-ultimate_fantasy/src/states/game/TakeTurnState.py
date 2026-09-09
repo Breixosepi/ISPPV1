@@ -65,8 +65,8 @@ class TakeTurnState(BaseState):
                 self.entity.max_wait_time = action["wait_time"]
                 self.entity.wait_time = action["wait_time"]
             else:
-                self.entity.max_wait_time = 1.0
-                self.entity.wait_time = 1.0
+                self.entity.max_wait_time = 0.4
+                self.entity.wait_time = 0.4
 
             if all(enemy.dead for enemy in self.battle_state.enemies):
                 self._victory()

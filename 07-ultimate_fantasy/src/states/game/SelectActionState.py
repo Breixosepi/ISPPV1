@@ -29,20 +29,15 @@ class SelectActionState(BaseState):
         self.entity = entity
         self.on_action_selected = on_action_selected
 
-        from src.gui.AlphaMenu import AlphaMenu
-        items, alphas = AlphaMenu.build_action_items(
-            self.entity, 
-            make_selector_func=self._make_selector,
-            disabled_func=None
-        )
-
+        items = [
+            (action["name"], self._make_selector(action))
+            for action in self.entity.actions
+        ]
         items.append(("Run", self._run))
-        alphas.append(100)
         items.append(("Nothing", self._nothing))
-        alphas.append(100)
 
-        self.menu = AlphaMenu(
-            288, settings.VIRTUAL_HEIGHT - 64, 96, 64, items=items, alphas=alphas, font=settings.FONTS["small"]
+        self.menu = Menu(
+            288, settings.VIRTUAL_HEIGHT - 64, 96, 64, items=items, font=settings.FONTS["small"]
         )
 
     def _make_selector(self, action: Dict[str, Any]) -> Callable[[], None]:
@@ -99,7 +94,7 @@ class SelectActionState(BaseState):
 
     def _nothing(self) -> None:
         self.state_machine.pop()
-        self.on_action_selected({"name": "Nothing", "wait_time": 1.0})
+        self.on_action_selected({"name": "Nothing", "wait_time": 0.4})
 
     def update(self, dt: float) -> None:
         for enemy in self.battle_state.enemies:
