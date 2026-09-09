@@ -30,21 +30,12 @@ class PartyStatusView:
         self.font = settings.FONTS["small"]
         self.cursor_texture = settings.TEXTURES["cursor-right"]
 
-    def update(self, dt: float) -> None:
-        pass
+    def change_index(self, step: int) -> None:
+        self.selected_index = (self.selected_index + step) % len(self.characters)
+        settings.SOUNDS["blip"].stop()
+        settings.SOUNDS["blip"].play()
 
-    def on_input(self, input_id: str, input_data: Any) -> None:
-        if not self.active or not input_data.pressed:
-            return
 
-        if input_id == "move_up":
-            self.selected_index = (self.selected_index - 1) % len(self.characters)
-            settings.SOUNDS["blip"].stop()
-            settings.SOUNDS["blip"].play()
-        elif input_id == "move_down":
-            self.selected_index = (self.selected_index + 1) % len(self.characters)
-            settings.SOUNDS["blip"].stop()
-            settings.SOUNDS["blip"].play()
 
     def get_selected_character(self) -> Any:
         return self.characters[self.selected_index]

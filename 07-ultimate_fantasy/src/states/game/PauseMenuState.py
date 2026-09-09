@@ -1,9 +1,9 @@
 """
-ISPPV1 2023
+ISPPV1 2026
 Study Case: Ultimate Fantasy (RPG)
 
-Author: Alejandro Mujica
-alejandro.j.mujic4@gmail.com
+Author: Eugenio Montilla
+eugeniorusso1411@gmail.com
 
 This file contains the class PauseMenuState: pushed on top of PlayState
 (which keeps rendering, frozen, underneath it) when the player presses
@@ -48,6 +48,7 @@ class PauseMenuState(BaseState):
                 ("Continue", self.close),
                 ("Save game", self._save),
                 ("Load another game", self._load_another),
+                ("Skills", self._skills),
                 ("Quit", self._quit),
             ],
             font=settings.FONTS["small"],
@@ -55,6 +56,10 @@ class PauseMenuState(BaseState):
 
     def close(self) -> None:
         self.state_machine.pop()
+
+    def _skills(self) -> None:
+        from src.states.game.PauseSkillsState import PauseSkillsState
+        self.state_machine.push(PauseSkillsState(self.state_machine), play_state=self.play_state, party_status_view=self.party_status_view)
 
     # -- save --------------------------------------------------------------
 
@@ -202,14 +207,10 @@ class PauseMenuState(BaseState):
             return
 
         if input_id == "move_left":
-            self.party_status_view.selected_index = (self.party_status_view.selected_index - 1) % len(self.party_status_view.characters)
-            settings.SOUNDS["blip"].stop()
-            settings.SOUNDS["blip"].play()
+            self.party_status_view.change_index(-1)
             return
         elif input_id == "move_right":
-            self.party_status_view.selected_index = (self.party_status_view.selected_index + 1) % len(self.party_status_view.characters)
-            settings.SOUNDS["blip"].stop()
-            settings.SOUNDS["blip"].play()
+            self.party_status_view.change_index(1)
             return
 
         if input_id == "move_up":

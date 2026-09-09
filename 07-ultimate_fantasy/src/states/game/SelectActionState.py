@@ -1,9 +1,9 @@
 """
-ISPPV1 2023
+ISPPV1 2026
 Study Case: Ultimate Fantasy (RPG)
 
-Author: Alejandro Mujica
-alejandro.j.mujic4@gmail.com
+Author: Eugenio Montilla
+eugeniorusso1411@gmail.com
 
 This file contains the class SelectActionState: menu of the acting
 entity's own actions.actions (whatever list its ENTITY_DEFS entry
@@ -29,20 +29,16 @@ class SelectActionState(BaseState):
         self.entity = entity
         self.on_action_selected = on_action_selected
 
-        items = []
-        alphas = []
-        for action in entity.actions:
-            items.append((action["name"], self._make_selector(action)))
-            # Transparent if it's not a healing action
-            if action["name"] in ("Heal", "Global Heal"):
-                alphas.append(255)
-            else:
-                alphas.append(100)
+        from src.gui.AlphaMenu import AlphaMenu
+        items, alphas = AlphaMenu.build_action_items(
+            self.entity, 
+            make_selector_func=self._make_selector,
+            disabled_func=None
+        )
 
         items.append(("Nothing", self._nothing))
         alphas.append(100)
 
-        from src.gui.AlphaMenu import AlphaMenu
         self.menu = AlphaMenu(
             288, settings.VIRTUAL_HEIGHT - 64, 96, 64, items=items, alphas=alphas, font=settings.FONTS["small"]
         )
