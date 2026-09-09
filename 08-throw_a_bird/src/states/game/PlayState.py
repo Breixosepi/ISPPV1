@@ -115,6 +115,18 @@ class PlayState(BaseState):
         self.pressed_camera_target = pygame.Vector2()
         self.aim_offset = pygame.Vector2()
 
+        self.world.on_collision_begin(self._on_collision)
+
+    def _on_collision(self, body_a, body_b) -> None:
+
+        data_a = body_a.user_data
+        data_b = body_b.user_data
+        
+        if data_a == "wind" or data_b == "wind":
+            return
+            
+        self.bird_manager.handle_collision(data_a, data_b)
+
     def fixed_update(self) -> None:
         # Driven by gale.game.Game's own accumulator (added in gale
         # 1.10.0) instead of calling self.world.update(dt) here, which

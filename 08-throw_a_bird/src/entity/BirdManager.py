@@ -13,6 +13,7 @@ class BirdManager:
     def _spawn_initial_bird(self):
         self.birds = [Bird(self.world, self.start_x, self.start_y)]
         self.has_split = False
+        self.can_split = True
 
     @property
     def primary_bird(self):
@@ -25,9 +26,10 @@ class BirdManager:
         self.birds = [self.primary_bird]
         self.primary_bird.reset()
         self.has_split = False
+        self.can_split = True
 
     def split(self):
-        if self.has_split:
+        if self.has_split or not self.can_split:
             return
             
         self.has_split = True
@@ -60,6 +62,10 @@ class BirdManager:
                 return False
                 
         return True
+
+    def handle_collision(self, data_a, data_b) -> None:
+        if data_a in self.birds or data_b in self.birds:
+            self.can_split = False
 
     def render(self, surface, camera):
         for bird in self.birds:
