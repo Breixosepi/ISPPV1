@@ -1,9 +1,9 @@
 """
-ISPPV1 2023
+ISPPV1 2026
 Study Case: Ultimate Fantasy (RPG)
 
-Author: Alejandro Mujica
-alejandro.j.mujic4@gmail.com
+Author: Eugenio Montilla
+eugeniorusso1411@gmail.com
 
 This file contains the class SelectCharacterState: lets the player pick a
 gender (male/female) for each of the NUM_CHARACTERS party slots in turn,
