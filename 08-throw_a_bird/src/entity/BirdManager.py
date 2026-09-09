@@ -8,16 +8,32 @@ class BirdManager:
         self.start_y = start_y
         self.birds = []
         self.has_split = False
+        self.can_split = True
+        self.focused_bird_index = 0
         self._spawn_initial_bird()
 
     def _spawn_initial_bird(self):
         self.birds = [Bird(self.world, self.start_x, self.start_y)]
         self.has_split = False
         self.can_split = True
+        self.focused_bird_index = 0
 
     @property
     def primary_bird(self):
         return self.birds[0]
+
+    @property
+    def focused_bird(self):
+
+        if not self.birds:
+            return None
+        
+        self.focused_bird_index %= len(self.birds)
+        return self.birds[self.focused_bird_index]
+
+    def cycle_focus(self):
+        if len(self.birds) > 1:
+            self.focused_bird_index = (self.focused_bird_index + 1) % len(self.birds)
 
     def reset(self):
         for bird in self.birds[1:]:
@@ -27,6 +43,7 @@ class BirdManager:
         self.primary_bird.reset()
         self.has_split = False
         self.can_split = True
+        self.focused_bird_index = 0
 
     def split(self):
         if self.has_split or not self.can_split:

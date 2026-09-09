@@ -143,7 +143,7 @@ class PlayState(BaseState):
             return
 
         if self.flinging:
-            self.camera_target.update(self.bird_manager.primary_bird.position)
+            self.camera_target.update(self.bird_manager.focused_bird.position)
             self._update_idle()
         elif self.aiming:
             self._hold_bird_while_aiming()
@@ -185,9 +185,10 @@ class PlayState(BaseState):
             self.idle_frames = 0
 
     def _update_zoom(self, dt: float) -> None:
-        bird = self.bird_manager.primary_bird
-        distance = abs(bird.position.x - bird.initial_position.x)
-        reach = max(1.0, bird.initial_position.x)
+
+        bird = self.bird_manager.focused_bird
+        distance = abs(bird.position.x - self.level.bird_start.x)
+        reach = max(1.0, self.level.bird_start.x)
         target_ratio = max(CAMERA_ZOOM_MIN, min(CAMERA_ZOOM_MAX, math.sqrt(distance / reach)))
         factor = 1.0 - math.exp(-CAMERA_ZOOM_LERP_RATE * dt)
         self.camera_zoom_ratio += (target_ratio - self.camera_zoom_ratio) * factor
@@ -228,9 +229,12 @@ class PlayState(BaseState):
         bird = self.bird_manager.primary_bird
 
         if input_data.pressed:
+            if self.flinging and self.bird_manager.has_split:
+                self.bird_manager.cycle_focus()
+                return
+
             self.pressed_position = position
             world_position = pygame.Vector2(self.camera.screen_to_world(position))
-
             if (
                 not self.flinging
                 and (world_position - bird.position).length() < AIM_GRAB_RADIUS
@@ -243,7 +247,6 @@ class PlayState(BaseState):
         elif input_data.released:
             if self.aiming:
                 self._fling()
-
             self.aiming = False
             self.panning = False
 
