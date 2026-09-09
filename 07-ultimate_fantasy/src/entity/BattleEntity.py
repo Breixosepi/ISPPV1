@@ -38,6 +38,10 @@ class BattleEntity(Entity):
 
         self.current_hp: float = self.hp
 
+        # ATB system attributes
+        self.max_wait_time: float = 0.0
+        self.wait_time: float = 0.0
+
     def damage(self, amount: float) -> None:
         self.current_hp -= amount
 

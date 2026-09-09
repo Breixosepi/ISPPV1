@@ -75,6 +75,14 @@ class PartyStatusView:
                 hp_ratio = character.current_hp / character.hp
                 pygame.draw.rect(surface, (189, 32, 32), (bar_x, bar_y, int(bar_w * hp_ratio), bar_h))
 
+            # ATB Bar (Mini)
+            atb_bar_y = row_y + 8
+            pygame.draw.rect(surface, (50, 50, 50), (bar_x, atb_bar_y, bar_w, 2))
+            if not character.dead and hasattr(character, "wait_time") and hasattr(character, "max_wait_time") and character.max_wait_time > 0:
+                atb_ratio = 1.0 - (character.wait_time / character.max_wait_time)
+                atb_ratio = max(0.0, min(1.0, atb_ratio))
+                pygame.draw.rect(surface, (255, 255, 0), (bar_x, atb_bar_y, int(bar_w * atb_ratio), 2))
+
         # We use a vertical divider
         divider_x = self.x + 165
         pygame.draw.line(surface, (255, 255, 255), (divider_x, self.y + 4), (divider_x, self.y + self.height - 4))

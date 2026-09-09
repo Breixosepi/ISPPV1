@@ -5,12 +5,9 @@ Study Case: Ultimate Fantasy (RPG)
 Author: Eugenio Montilla
 eugeniorusso1411@gmail.com
 
-This file contains the class BattleState: builds the battle background
-(procedurally, same as an overworld Region but sized BATTLE_WIDTH x
-BATTLE_HEIGHT), spawns 3-5 random enemies for the current region (or,
-10% of the time in the west region, a final-boss fight against the
-Man-Eater Flower plus two regular west enemies), and kicks off the
-opening dialogue -> BattleMenuState turn loop.
+This file contains the class BattleState: pushes the battle stack (background ->
+party view -> opening dialogue -> TakeTurnState ATB loop). It also manages the
+wait_time accumulation for all entities (ATB system) in its update loop.
 """
 
 import math
@@ -62,6 +59,16 @@ class BattleState(BaseState):
         self.party_status_view = PartyStatusView(0, settings.VIRTUAL_HEIGHT - 64, 288, 64, self.party)
 
         self._create_bars()
+
+        # ATB system initialization
+        self.turn_queue = []
+        for character in self.party.characters.values():
+            if not character.dead:
+                character.max_wait_time = random.uniform(0.5, 2.0)
+                character.wait_time = character.max_wait_time
+        for enemy in self.enemies:
+            enemy.max_wait_time = random.uniform(0.5, 2.0)
+            enemy.wait_time = enemy.max_wait_time
 
     def exit(self) -> None:
         settings.stop_music("battle")
@@ -167,13 +174,39 @@ class BattleState(BaseState):
         if not self.battle_started:
             self.battle_started = True
             self._trigger_starting_dialogue()
+            return
 
         for enemy in self.enemies:
             if not enemy.dead:
                 enemy.update(dt)
 
+        # Do not process ATB if we are not the top state (e.g. menu is open or taking a turn)
+        if self.state_machine.states[-1] != self:
+            return
+
+        for char in self.party.characters.values():
+            if not char.dead and char.wait_time > 0:
+                char.wait_time = max(0, char.wait_time - dt)
+                if char.wait_time <= 0 and char not in self.turn_queue:
+                    self.turn_queue.append(char)
+
+        for enemy in self.enemies:
+            if not enemy.dead and enemy.wait_time > 0:
+                enemy.wait_time = max(0, enemy.wait_time - dt)
+                if enemy.wait_time <= 0 and enemy not in self.turn_queue:
+                    self.turn_queue.append(enemy)
+
+        if self.turn_queue:
+            next_entity = self.turn_queue.pop(0)
+            if not next_entity.dead:
+                from src.states.game.TakeTurnState import TakeTurnState
+                self.state_machine.push(
+                    TakeTurnState(self.state_machine),
+                    battle_state=self,
+                    entity=next_entity
+                )
+
     def _trigger_starting_dialogue(self) -> None:
-        from src.states.game.BattleMenuState import BattleMenuState
         from src.states.game.BattleMessageState import BattleMessageState
 
         def show_go_message() -> None:
@@ -191,11 +224,8 @@ class BattleState(BaseState):
                 BattleMessageState(self.state_machine),
                 battle_state=self,
                 message=message,
-                on_close=open_menu,
+                on_close=lambda: None,
             )
-
-        def open_menu() -> None:
-            self.state_machine.push(BattleMenuState(self.state_machine), battle_state=self)
 
         self.state_machine.push(
             BattleMessageState(self.state_machine),

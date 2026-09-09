@@ -23,7 +23,7 @@ from src.gui.Menu import Menu
 
 class SelectActionState(BaseState):
     def enter(
-        self, battle_state: Any, entity: Any, on_action_selected: Callable[[], None]
+        self, battle_state: Any, entity: Any, on_action_selected: Callable[[Any], None]
     ) -> None:
         self.battle_state = battle_state
         self.entity = entity
@@ -36,6 +36,8 @@ class SelectActionState(BaseState):
             disabled_func=None
         )
 
+        items.append(("Run", self._run))
+        alphas.append(100)
         items.append(("Nothing", self._nothing))
         alphas.append(100)
 
@@ -71,28 +73,33 @@ class SelectActionState(BaseState):
             for target in alive_targets:
                 Timer.tween(0.5, [(target.energy_bar, {"value": target.current_hp})])
 
-            self._show_result(f"{action['name']} for {amount} HP to each target.")
+            self._show_result(f"{action['name']} for {amount} HP to each target.", action)
 
     def _resolve(self, action: Dict[str, Any], target: Any) -> None:
         amount = action["func"](self.entity, target, action.get("strength"))
         settings.SOUNDS[action["sound_effect"]].play()
         Timer.tween(0.5, [(target.energy_bar, {"value": target.current_hp})])
 
-        self._show_result(f"{action['name']} for {amount} HP to {target.name}.")
+        self._show_result(f"{action['name']} for {amount} HP to {target.name}.", action)
 
-    def _show_result(self, message: str) -> None:
+    def _show_result(self, message: str, action: Any) -> None:
         from src.states.game.BattleMessageState import BattleMessageState
 
         self.state_machine.push(
             BattleMessageState(self.state_machine),
             battle_state=self.battle_state,
             message=message,
-            on_close=self.on_action_selected,
+            on_close=lambda: self.on_action_selected(action),
         )
+
+    def _run(self) -> None:
+        settings.SOUNDS["run"].play()
+        self.state_machine.pop()
+        self.on_action_selected({"name": "Run", "wait_time": 2.0})
 
     def _nothing(self) -> None:
         self.state_machine.pop()
-        self.on_action_selected()
+        self.on_action_selected({"name": "Nothing", "wait_time": 1.0})
 
     def update(self, dt: float) -> None:
         for enemy in self.battle_state.enemies:
