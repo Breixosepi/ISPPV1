@@ -36,6 +36,7 @@ from gale.text import render_text
 import settings
 from src.entity.Bird import Bird
 from src.world.Level import Level
+from src.entity.BirdManager import BirdManager
 
 # How close (world pixels) a press has to land to the bird to start
 # aiming instead of panning the camera.
@@ -92,10 +93,11 @@ class PlayState(BaseState):
         self.world = World(gravity=settings.GRAVITY)
 
         self.level = Level(self.world)
-        self.bird = Bird(self.world, self.level.bird_start.x, self.level.bird_start.y)
+        self.bird_manager = BirdManager(self.world, self.level.bird_start.x, self.level.bird_start.y)
+        bird_pos = self.bird_manager.primary_bird.position 
 
         self.camera = Camera(settings.VIRTUAL_WIDTH, settings.VIRTUAL_HEIGHT)
-        self.camera.x, self.camera.y = self.bird.position
+        self.camera.x, self.camera.y = bird_pos
         self.camera_target = pygame.Vector2(self.camera.x, self.camera.y)
         self.camera.follow(self.camera_target, rate=CAMERA_FOLLOW_RATE)
         # Mirrors main.script's self.camera_zoom (ranges 1..1.5, bigger
@@ -129,7 +131,7 @@ class PlayState(BaseState):
             return
 
         if self.flinging:
-            self.camera_target.update(self.bird.position)
+            self.camera_target.update(self.bird_manager.primary_bird.position)
             self._update_idle()
         elif self.aiming:
             self._hold_bird_while_aiming()
@@ -140,7 +142,7 @@ class PlayState(BaseState):
         self.camera.update(dt)
 
     def _hold_bird_at_rest(self) -> None:
-        self.bird.reset()
+        self.bird_manager.reset()
 
     def _hold_bird_while_aiming(self) -> None:
         # world.update(dt) above still steps gravity on the bird every
@@ -152,34 +154,29 @@ class PlayState(BaseState):
         # the bird around erratically the moment position gets set again.
         # Re-applying the held offset and zeroing velocity every frame
         # keeps the bird glued to the mouse the whole time it is aiming.
-        self.bird.body.position = self.bird.initial_position - self.aim_offset
-        self.bird.body.velocity = (0, 0)
-        self.bird.body.angular_velocity = 0.0
+        bird = self.bird_manager.primary_bird
+        bird.body.position = bird.initial_position - self.aim_offset
+        bird.body.velocity = (0, 0)
+        bird.body.angular_velocity = 0.0
 
     def _update_idle(self) -> None:
-        linear_speed = self.bird.body.velocity.length()
-        angular_speed = abs(self.bird.body.angular_velocity)
 
-        if (
-            linear_speed < IDLE_LINEAR_SPEED_THRESHOLD
-            and angular_speed < IDLE_ANGULAR_SPEED_THRESHOLD
-        ):
+        if self.bird_manager.are_all_idle(IDLE_LINEAR_SPEED_THRESHOLD, IDLE_ANGULAR_SPEED_THRESHOLD):
             self.idle_frames += 1
 
             if self.idle_frames > IDLE_FRAMES_LIMIT:
                 self.flinging = False
                 self.idle_frames = 0
-                self.bird.reset()
-                self.camera_target.update(self.bird.position)
+                self.bird_manager.reset()
+                self.camera_target.update(self.bird_manager.primary_bird.position)
         else:
             self.idle_frames = 0
 
     def _update_zoom(self, dt: float) -> None:
-        distance = abs(self.bird.position.x - self.bird.initial_position.x)
-        reach = max(1.0, self.bird.initial_position.x)
-        target_ratio = max(
-            CAMERA_ZOOM_MIN, min(CAMERA_ZOOM_MAX, math.sqrt(distance / reach))
-        )
+        bird = self.bird_manager.primary_bird
+        distance = abs(bird.position.x - bird.initial_position.x)
+        reach = max(1.0, bird.initial_position.x)
+        target_ratio = max(CAMERA_ZOOM_MIN, min(CAMERA_ZOOM_MAX, math.sqrt(distance / reach)))
         factor = 1.0 - math.exp(-CAMERA_ZOOM_LERP_RATE * dt)
         self.camera_zoom_ratio += (target_ratio - self.camera_zoom_ratio) * factor
         self.camera.zoom = 1.0 / self.camera_zoom_ratio
@@ -187,7 +184,7 @@ class PlayState(BaseState):
     def render(self, surface: pygame.Surface) -> None:
         surface.fill(settings.BG_COLOR)
         self.level.render(surface, self.camera)
-        self.bird.render(surface, self.camera)
+        self.bird_manager.render(surface, self.camera)
 
         if self.aiming:
             self._render_pull_line(surface)
@@ -195,8 +192,9 @@ class PlayState(BaseState):
         render_text(surface, HUD_TEXT, settings.FONTS["small"], 10, 10, (70, 55, 40))
 
     def _render_pull_line(self, surface: pygame.Surface) -> None:
-        start = self.camera.world_to_screen(self.bird.initial_position)
-        end = self.camera.world_to_screen(self.bird.position)
+        bird = self.bird_manager.primary_bird
+        start = self.camera.world_to_screen(bird.initial_position)
+        end = self.camera.world_to_screen(bird.position)
         pygame.draw.line(surface, (110, 75, 40), start, end, 3)
 
     def on_input(self, input_id: str, input_data: InputData) -> None:
@@ -204,6 +202,9 @@ class PlayState(BaseState):
             self._on_touch(input_data)
         elif input_id == "touch_motion":
             self._on_touch_motion(input_data)
+        elif input_id == "split":
+            if self.flinging:
+                self.bird_manager.split()
 
     def _mouse_to_virtual(self, position) -> pygame.Vector2:
         scale_x = settings.VIRTUAL_WIDTH / settings.WINDOW_WIDTH
@@ -212,6 +213,7 @@ class PlayState(BaseState):
 
     def _on_touch(self, input_data: InputData) -> None:
         position = self._mouse_to_virtual(input_data.position)
+        bird = self.bird_manager.primary_bird
 
         if input_data.pressed:
             self.pressed_position = position
@@ -219,7 +221,7 @@ class PlayState(BaseState):
 
             if (
                 not self.flinging
-                and (world_position - self.bird.position).length() < AIM_GRAB_RADIUS
+                and (world_position - bird.position).length() < AIM_GRAB_RADIUS
             ):
                 self.aiming = True
                 self.aim_offset = pygame.Vector2()
@@ -234,14 +236,15 @@ class PlayState(BaseState):
             self.panning = False
 
     def _fling(self) -> None:
-        pull = self.bird.initial_position - self.bird.position
+        bird = self.bird_manager.primary_bird
+        pull = bird.initial_position - bird.position
         if pull.length() < 5:
-            self.bird.reset()
+            self.bird_manager.reset()
             return
         # Scaled by the bird's own mass so it cancels out of the
         # resulting delta-v -- see the FLING_IMPULSE_SCALE docstring.
-        scale = FLING_IMPULSE_SCALE * self.bird.mass
-        self.bird.body.apply_impulse(pull.x * scale, pull.y * scale)
+        scale = FLING_IMPULSE_SCALE * bird.mass
+        bird.body.apply_impulse(pull.x * scale, pull.y * scale)
         self.flinging = True
         self.idle_frames = 0
 
